@@ -15,7 +15,7 @@ const defaultPlanSchema = new Schema({
     videos: {
         type: [String],
         validate: {
-            validator: videos => videos.length > 2,
+            validator: videos => videos.length > 0,
             message: props => `${props.value} must contains at least 1 video`
         }
     },
