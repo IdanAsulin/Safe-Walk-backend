@@ -1,0 +1,22 @@
+{
+  "name": "safe_walk_backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IdanAsulin/Safe-Walk-backend.git"
+  },
+  "author": "Idan Asulin, Avraham Neeman, Yaniv Ziperfal",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IdanAsulin/Safe-Walk-backend/issues"
+  },
+  "homepage": "https://github.com/IdanAsulin/Safe-Walk-backend#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
