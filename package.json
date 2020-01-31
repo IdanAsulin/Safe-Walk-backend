@@ -18,6 +18,7 @@
   "homepage": "https://github.com/IdanAsulin/Safe-Walk-backend#readme",
   "dependencies": {
     "express": "^4.17.1",
-    "mongoose": "^5.8.10"
+    "mongoose": "^5.8.10",
+    "uuid": "^3.4.0"
   }
 }
