@@ -30,7 +30,7 @@ const rehabPlanSchema = new Schema({
         default: ""
     },
     therapistID: { type: String, required: true },
-    defaultPlan: { type: [String], default: [] }
+    defaultPlans: { type: [String], default: [] }
 });
 
 module.exports = mongoose.model('rehabPlan', rehabPlanSchema);

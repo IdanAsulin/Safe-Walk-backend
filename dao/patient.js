@@ -20,7 +20,7 @@ const patientSchema = new Schema({
     },
     testsList: [{
         type: String,
-        required: true
+        default: []
     }],
     waitForPlan: { type: Boolean, default: false },
     rehabPlanID: { type: String, default: "" },
