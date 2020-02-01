@@ -4,9 +4,9 @@ const user = require('../controllers/user');
 const router = express.Router();
 
 router.post('/', user.createUser);
-router.post('/password/:id', user.changePassword);
+router.put('/:id', user.editUser);
 router.get('/', user.getAllUsers);
-router.get('/:email', user.getUserByEmail);
-router.post('/disable/:email', user.disableUser);
+router.get('/:id', user.getUserByID);
+router.put('/disable/:id', user.disableUser);
 
 module.exports = router;
