@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 const uuidv4 = require('uuid/v4');
 
 const Schema = mongoose.Schema;
+function checkIP(ip) {
+    const ipRegEx = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    return ipRegEx.test(ip);
+};
 
 const sensorsKitSchema = new Schema({
     id: {
@@ -13,14 +17,68 @@ const sensorsKitSchema = new Schema({
         required: true
     },
     IPs: {
-        type: {
-            sensor1: { type: String, required: true, default: "" },
-            sensor2: { type: String, required: true, default: "" },
-            sensor3: { type: String, required: true, default: "" },
-            sensor4: { type: String, required: true, default: "" },
-            sensor5: { type: String, required: true, default: "" },
-            sensor6: { type: String, required: true, default: "" },
-            sensor7: { type: String, required: true, default: "" },
+        sensor1: {
+            type: String,
+            required: true,
+            default: "0.0.0.0",
+            validate: {
+                validator: ip => checkIP(ip),
+                message: props => `${props.value} is not a valid ip address`
+            }
+        },
+        sensor2: {
+            type: String,
+            required: true,
+            default: "0.0.0.0",
+            validate: {
+                validator: ip => checkIP(ip),
+                message: props => `${props.value} is not a valid ip address`
+            }
+        },
+        sensor3: {
+            type: String,
+            required: true,
+            default: "0.0.0.0",
+            validate: {
+                validator: ip => checkIP(ip),
+                message: props => `${props.value} is not a valid ip address`
+            }
+        },
+        sensor4: {
+            type: String,
+            required: true,
+            default: "0.0.0.0",
+            validate: {
+                validator: ip => checkIP(ip),
+                message: props => `${props.value} is not a valid ip address`
+            }
+        },
+        sensor5: {
+            type: String,
+            required: true,
+            default: "0.0.0.0",
+            validate: {
+                validator: ip => checkIP(ip),
+                message: props => `${props.value} is not a valid ip address`
+            }
+        },
+        sensor6: {
+            type: String,
+            required: true,
+            default: "0.0.0.0",
+            validate: {
+                validator: ip => checkIP(ip),
+                message: props => `${props.value} is not a valid ip address`
+            }
+        },
+        sensor7: {
+            type: String,
+            required: true,
+            default: "0.0.0.0",
+            validate: {
+                validator: ip => checkIP(ip),
+                message: props => `${props.value} is not a valid ip address`
+            }
         }
     }
 });
