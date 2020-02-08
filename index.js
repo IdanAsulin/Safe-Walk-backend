@@ -6,7 +6,6 @@ const rehabPlan = require('./routes/rehabPlan');
 const sensorKit = require('./routes/sensorKit');
 const test = require('./routes/test');
 const therapist = require('./routes/therapist');
-const user = require('./routes/user');
 const video = require('./routes/video');
 const auth = require('./routes/auth');
 require('./dbConnection');
@@ -24,7 +23,6 @@ app.use('/api/rehabPlan', rehabPlan);
 app.use('/api/sensorKit', sensorKit);
 app.use('/api/test', test);
 app.use('/api/therapist', therapist);
-app.use('/api/user', user);
 app.use('/api/video', video);
 app.use('/auth', auth);
 

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const uuidv4 = require('uuid/v4');
+const { checkEmail } = require('../utils');
 
 const Schema = mongoose.Schema;
 
@@ -12,6 +13,17 @@ const patientSchema = new Schema({
         type: String,
         required: true
     },
+    mail: {
+        type: String,
+        required: true,
+        validate: {
+            validator: email => checkEmail(email),
+            message: props => `${props.value} is not a valid email address`
+        }
+    },
+    password: { type: String, required: true },
+    picture: { type: String, required: false, default: '' },
+    phoneNumber: { type: String, required: true },
     birthDate: { type: Date, required: true },
     gender: {
         type: String,
