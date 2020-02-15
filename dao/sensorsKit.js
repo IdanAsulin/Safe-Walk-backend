@@ -1,11 +1,8 @@
 const mongoose = require('mongoose');
 const uuidv4 = require('uuid/v4');
+const { checkIP } = require('../utils');
 
 const Schema = mongoose.Schema;
-function checkIP(ip) {
-    const ipRegEx = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    return ipRegEx.test(ip);
-};
 
 const sensorsKitSchema = new Schema({
     id: {
