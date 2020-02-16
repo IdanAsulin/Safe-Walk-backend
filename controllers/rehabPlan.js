@@ -6,11 +6,11 @@ class RehabPlan extends AbstractPlan {
     }
 
     addDefaultPlans = async (req, res) => {
-        
+
     }
 
     removeDefaultPlans = async (req, res) => {
-
+        
     }
 }
 
