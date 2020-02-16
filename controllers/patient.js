@@ -3,7 +3,7 @@ const Joi = require('joi');
 const crypto = require('crypto');
 
 class Patient {
-    async createPatient(req, res) {
+    createPatient = async (req, res) => {
         const schema = Joi.object({
             name: Joi.string().required(),
             mail: Joi.string().email().required(),
@@ -41,7 +41,7 @@ class Patient {
         }
     }
 
-    async editPatient(req, res) {
+    editPatient = async (req, res) => {
         const schema = Joi.object({
             name: Joi.string(),
             password: Joi.string().min(6).max(13),
@@ -96,9 +96,7 @@ class Patient {
                 patientDocument.rehabPlanID = validatedInput.rehabPlanID;
             const response = await patientDocument.save();
             console.log(`Patient (${req.params.id}) was updated successfully`);
-            return res.status(200).json({
-                patient: response
-            });
+            return res.status(200).json(response);
         } catch (ex) {
             console.error(`Error while trying to edit patient (${req.params.id}): ${ex.message}`);
             return res.status(500).json({
@@ -107,7 +105,7 @@ class Patient {
         }
     }
 
-    async getAllPatients(req, res) {
+    getAllPatients = async (req, res) => {
         try {
             const response = await patientDao.find();
             return res.status(200).json(response);
@@ -119,7 +117,7 @@ class Patient {
         }
     }
 
-    async getPatientByID(req, res) {
+    getPatientByID = async (req, res) => {
         if (!req.params.id)
             return res.status(500).json({
                 message: `Patient ID query parameter is required`
@@ -139,7 +137,7 @@ class Patient {
         }
     }
 
-    async addTest(req, res) {
+    addTest = async (req, res) => {
         if (!req.params.id)
             return res.status(400).json({
                 message: `Patiend ID query parameter is required`

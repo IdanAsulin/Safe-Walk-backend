@@ -3,7 +3,7 @@ const Joi = require('joi');
 const crypto = require('crypto');
 
 class Therapist {
-    async createTherapist(req, res) {
+    createTherapist = async (req, res) => {
         const schema = Joi.object({
             name: Joi.string().required(),
             mail: Joi.string().email().required(),
@@ -36,7 +36,7 @@ class Therapist {
         }
     }
 
-    async addPatient(req, res) {
+    addPatient = async (req, res) => {
         if (!req.params.id)
             return res.status(400).json({
                 message: `Therapist ID query parameter is required`
@@ -72,7 +72,7 @@ class Therapist {
         }
     }
 
-    async getAllTherapists(req, res) {
+    getAllTherapists = async (req, res) => {
         try {
             const response = await therapistDao.find();
             return res.status(200).json(response);
@@ -84,7 +84,7 @@ class Therapist {
         }
     }
 
-    async getTherapistByID(req, res) {
+    getTherapistByID = async (req, res) => {
         if (!req.params.id)
             return res.status(500).json({
                 message: `Therapist ID query parameter is required`
