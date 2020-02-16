@@ -49,7 +49,13 @@ class PatientGaitModel {
         }
         try {
             const response = await patientGaitModelDao.findOne({id: req.params.id})
+            if(!response) {
+                return res.status(404).json({
+                    message: 'not found'
+                })
+            }
             return res.status(200).json(response)
+
         } catch(err) {
             console.error(err)
             return res.status(500).json({
