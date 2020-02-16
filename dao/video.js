@@ -6,7 +6,7 @@ const Schema = mongoose.Schema;
 const videoSchema = new Schema({
     id: {
         type: String,
-        default: uuidv4()
+        default: uuidv4
     },
     name: {
         type: String,
