@@ -6,7 +6,7 @@ const Schema = mongoose.Schema;
 const patientGaitModelSchema = new Schema({
     id: {
         type: String,
-        default: uuidv4()
+        default: uuidv4
     },
     testID: {
         type: String,
