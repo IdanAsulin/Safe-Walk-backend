@@ -7,7 +7,7 @@ const Schema = mongoose.Schema;
 const sensorsKitSchema = new Schema({
     id: {
         type: String,
-        default: uuidv4()
+        default: uuidv4
     },
     patientID: {
         type: String,

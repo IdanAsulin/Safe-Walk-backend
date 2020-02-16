@@ -7,7 +7,7 @@ const Schema = mongoose.Schema;
 const patientSchema = new Schema({
     id: {
         type: String,
-        default: uuidv4()
+        default: uuidv4
     },
     name: {
         type: String,
@@ -22,7 +22,7 @@ const patientSchema = new Schema({
         }
     },
     password: { type: String, required: true },
-    picture: { type: String, required: false, default: '' },
+    picture: { type: String, required: true, default: '' },
     phoneNumber: { type: String, required: true },
     birthDate: { type: Date, required: true },
     gender: {

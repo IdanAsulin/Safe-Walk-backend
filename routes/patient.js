@@ -1,7 +1,9 @@
 const express = require('express');
-const patient = require('../controllers/patient');
+const Patient = require('../controllers/patient');
 
 const router = express.Router();
+
+const patient = new Patient();
 
 router.post('/', patient.createPatient);
 router.put('/:id', patient.editPatient);
