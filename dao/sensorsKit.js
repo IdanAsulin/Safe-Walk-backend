@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const uuidv4 = require('uuid/v4');
 const { checkIP } = require('../utils');
 
+mongoose.set('useFindAndModify', false);
 const Schema = mongoose.Schema;
 
 const sensorsKitSchema = new Schema({
@@ -12,6 +13,10 @@ const sensorsKitSchema = new Schema({
     patientID: {
         type: String,
         required: true
+    },
+    disable: {
+        type: Boolean,
+        default: false
     },
     IPs: {
         sensor1: {
