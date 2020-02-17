@@ -11,5 +11,5 @@ module.exports = {
         const valueArr = array.map(item => item[attribute]);
         const isDuplicate = valueArr.some((item, index) => valueArr.indexOf(item) !== index);
         return isDuplicate;
-    },
+    }
 };
