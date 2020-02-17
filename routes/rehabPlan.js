@@ -12,6 +12,6 @@ router.delete('/videos/:id', rehabPlan.removeVideos);
 router.get('/', rehabPlan.getAllPlans);
 router.get('/:id', rehabPlan.getPlanByID);
 router.put('/defaultPlan/:id', rehabPlan.addDefaultPlans);
-// router.put('/defaultPlan/:id', rehabPlan.removeDefaultPlans);
+router.delete('/defaultPlan/:id', rehabPlan.removeDefaultPlans);
 
 module.exports = router;

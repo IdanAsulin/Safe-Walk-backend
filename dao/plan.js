@@ -17,7 +17,7 @@ const planSchema = new Schema({
         type: [{
             videoID: { type: String, required: true },
             times: { type: Number, default: 1, min: 1 },
-            done: { type: Boolean, default: false }
+            done: { type: Boolean }
         }],
         validate: {
             validator: videos => videos.length > 0,
@@ -30,7 +30,6 @@ const planSchema = new Schema({
         default: ""
     },
     therapistID: { type: String },
-    defaultPlans: { type: [String], default: [] },
     type: {
         type: String,
         enum: ['defaultPlan', 'rehabPlan'],

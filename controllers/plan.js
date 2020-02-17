@@ -35,6 +35,10 @@ class AbstractPlan {
             });
         let validatedInput = value;
         validatedInput.type = this.planType;
+        if (this.planType === 'rehabPlan') {
+            for (let index = 0; index < validatedInput.videos.length; index++)
+                validatedInput.videos[index] = { ...validatedInput.videos[index], done: false };
+        }
         const newPlan = new planDao(validatedInput);
         try {
             let response;
@@ -166,6 +170,10 @@ class AbstractPlan {
                 return res.status(403).json({
                     message: `You've sent duplicated videos`
                 });
+            if (this.planType === 'rehabPlan') {
+                for (let index = 0; index < validatedInput.videos.length; index++)
+                    validatedInput.videos[index] = { ...validatedInput.videos[index], done: false };
+            }
             planDocument.videos = planDocument.videos.concat(validatedInput.videos)
             if (utils.checkForDuplicates(planDocument.videos, 'videoID'))
                 return res.status(403).json({
