@@ -12,7 +12,6 @@ const videoSchema = new Schema({
         type: String,
         required: true
     },
-    duration: { type: Number, min: 0, required: true },
     link: { type: String, required: true }
 });
 
