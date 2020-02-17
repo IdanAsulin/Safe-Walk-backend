@@ -3,7 +3,7 @@ const uuidv4 = require('uuid/v4');
 
 const Schema = mongoose.Schema;
 
-const rehabPlanSchema = new Schema({
+const planSchema = new Schema({
     id: {
         type: String,
         default: uuidv4
@@ -12,12 +12,12 @@ const rehabPlanSchema = new Schema({
         type: String,
         required: true
     },
-    patientID: { type: String, required: true },
+    patientID: { type: String },
     videos: {
         type: [{
             videoID: { type: String, required: true },
             times: { type: Number, default: 1, min: 1 },
-            done: { type: Boolean, default: false }
+            done: { type: Boolean }
         }],
         validate: {
             validator: videos => videos.length > 0,
@@ -29,8 +29,12 @@ const rehabPlanSchema = new Schema({
         type: String,
         default: ""
     },
-    therapistID: { type: String, required: true },
-    defaultPlans: { type: [String], default: [] }
+    therapistID: { type: String },
+    type: {
+        type: String,
+        enum: ['defaultPlan', 'rehabPlan'],
+        required: true
+    }
 });
 
-module.exports = mongoose.model('rehabPlan', rehabPlanSchema);
+module.exports = mongoose.model('plan', planSchema);
