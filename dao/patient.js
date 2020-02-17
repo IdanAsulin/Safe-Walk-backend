@@ -22,7 +22,7 @@ const patientSchema = new Schema({
         }
     },
     password: { type: String, required: true },
-    picture: { type: String, required: true, default: '' },
+    picture: { type: String, required: true },
     phoneNumber: { type: String, required: true },
     birthDate: { type: Date, required: true },
     gender: {

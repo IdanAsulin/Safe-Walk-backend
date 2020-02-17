@@ -1,3 +1,4 @@
+require('./dbConnection');
 const express = require('express');
 const defaultPlan = require('./routes/defaultPlan');
 const patient = require('./routes/patient');
@@ -8,7 +9,6 @@ const test = require('./routes/test');
 const therapist = require('./routes/therapist');
 const video = require('./routes/video');
 const auth = require('./routes/auth');
-require('./dbConnection');
 
 const app = express();
 const port = process.env.PORT || 3000;

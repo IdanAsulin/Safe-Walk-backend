@@ -22,7 +22,7 @@ const therapistSchema = new Schema({
         }
     },
     password: { type: String, required: true },
-    picture: { type: String, required: false, default: '' },
+    picture: { type: String, required: false },
     patients: [String]
 });
 

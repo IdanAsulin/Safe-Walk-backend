@@ -5,7 +5,7 @@ const router = express.Router();
 const therapist = new Therapist();
 
 router.post('/', therapist.createTherapist);
-router.put('/patient/:id', therapist.addPatient);
+router.put('/:id/patient', therapist.addPatient);
 router.get('/:id', therapist.getTherapistByID);
 router.get('/', therapist.getAllTherapists);
 

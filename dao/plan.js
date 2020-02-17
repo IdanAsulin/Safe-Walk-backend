@@ -29,7 +29,7 @@ const planSchema = new Schema({
         type: String,
         default: ""
     },
-    therapistID: { type: String },
+    therapistID: String,
     type: {
         type: String,
         enum: ['defaultPlan', 'rehabPlan'],
