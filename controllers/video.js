@@ -34,11 +34,11 @@ class Video {
     removeVideo = async (req, res) => {
         if (!req.params.id)
             return res.status(400).json({
-                message: 'video ID path parameter was not provided'
+                message: 'Video ID path parameter was not provided'
             });
         if (typeof req.params.id !== 'string')
             return res.status(400).json({
-                message: 'video ID query parameter must be of type string'
+                message: 'Video ID query parameter must be of type string'
             });
         try {
             const response = await videoDao.findOneAndRemove({ id: req.params.id });
@@ -46,10 +46,10 @@ class Video {
                 return res.status(404).json({
                     message: `Not found`
                 });
-            console.log(`video was succesfully removed - videoID: ${req.params.id}`);
+            console.log(`Video - ${req.params.id} - was succesfully removed`);
             return res.status(200).json();
         } catch (err) {
-            console.error(`Error while trying to remove video: ${err.message}`);
+            console.error(`Error while trying to remove video - ${req.params.id}: ${err.message}`);
             return res.status(500).json({
                 message: err.message
             });
@@ -79,10 +79,10 @@ class Video {
                 return res.status(404).json({
                     message: "Not found"
                 });
-            console.log(`found video succesfully - videoID: ${req.params.id}`);
+            console.log(`Returns video - videoID: ${req.params.id}`);
             return res.status(200).json(response);
         } catch (err) {
-            console.error(`Error while trying to get video by ID: ${err.message}`);
+            console.error(`Error while trying to get video ID - ${req.params.id}: ${err.message}`);
             return res.status(500).json({
                 message: err.message
             });
@@ -123,10 +123,10 @@ class Video {
             if (link)
                 videoDocument.link = link;
             const response = await videoDocument.save();
-            console.log(`video (${req.params.id}) was updated successfully`);
+            console.log(`Video (${req.params.id}) was updated successfully`);
             return res.status(200).json(response);
         } catch (err) {
-            console.error(`Error while trying to edit video: ${err.message}`);
+            console.error(`Error while trying to edit video - ${req.params.id}: ${err.message}`);
             return res.status(500).json({
                 message: err.message
             });
