@@ -12,16 +12,11 @@ const sensorsKitSchema = new Schema({
     },
     patientID: {
         type: String,
-        required: true
-    },
-    disable: {
-        type: Boolean,
-        default: false
+        default: ""
     },
     IPs: {
         sensor1: {
             type: String,
-            required: true,
             default: "0.0.0.0",
             validate: {
                 validator: ip => checkIP(ip),
@@ -30,7 +25,6 @@ const sensorsKitSchema = new Schema({
         },
         sensor2: {
             type: String,
-            required: true,
             default: "0.0.0.0",
             validate: {
                 validator: ip => checkIP(ip),
@@ -39,7 +33,6 @@ const sensorsKitSchema = new Schema({
         },
         sensor3: {
             type: String,
-            required: true,
             default: "0.0.0.0",
             validate: {
                 validator: ip => checkIP(ip),
@@ -48,7 +41,6 @@ const sensorsKitSchema = new Schema({
         },
         sensor4: {
             type: String,
-            required: true,
             default: "0.0.0.0",
             validate: {
                 validator: ip => checkIP(ip),
@@ -57,7 +49,6 @@ const sensorsKitSchema = new Schema({
         },
         sensor5: {
             type: String,
-            required: true,
             default: "0.0.0.0",
             validate: {
                 validator: ip => checkIP(ip),
@@ -66,7 +57,6 @@ const sensorsKitSchema = new Schema({
         },
         sensor6: {
             type: String,
-            required: true,
             default: "0.0.0.0",
             validate: {
                 validator: ip => checkIP(ip),
@@ -75,7 +65,6 @@ const sensorsKitSchema = new Schema({
         },
         sensor7: {
             type: String,
-            required: true,
             default: "0.0.0.0",
             validate: {
                 validator: ip => checkIP(ip),

@@ -2,13 +2,12 @@ const express = require('express');
 const SensorKit = require('../controllers/sensorKit');
 
 const router = express.Router();
-const sensorKit = new SensorKit()
+const sensorsKit = new SensorKit()
 
-router.post('/', sensorKit.createKit);
-router.post('/:id/disable', sensorKit.disableKit);
-router.get('/', sensorKit.getAllKits);
-router.get('/:id', sensorKit.getKitByID);
-router.post('/:id/start', sensorKit.start);
-router.put('/:id/ips', sensorKit.updateIPs);
+router.post('/', sensorsKit.createKit);
+router.get('/', sensorsKit.getAllKits);
+router.get('/:id', sensorsKit.getKitByID);
+router.post('/:id/start', sensorsKit.start);
+router.put('/:id/ips', sensorsKit.updateIPs);
 
 module.exports = router;

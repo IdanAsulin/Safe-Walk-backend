@@ -1,71 +1,47 @@
-const Joi = require('joi')
-const sensorKitDao = require('../dao/sensorsKit')
+const Joi = require('joi');
+const sensorsKitDao = require('../dao/sensorsKit');
 
-class SensorKit {
-    createKit = async (req,res) => {
-        const schema = Joi.object({
-            patientID: Joi.string().required(),
-            IPs: Joi.array().items(
-                Joi.string().default('0.0.0.0').required()
-            )
-        });
-        const {error , value} = schema.validate(req.body)
-         if(error) {
-            console.error('error:' , error.message)
-             return res.status(500).json({
-                 message: error.message
-             });
-         }
-
-         try {
-             const isKitExistsAlready = await sensorKitDao.find({patientID: value.patientID})
-             if(isKitExistsAlready.length === 0) {
-                 const sensorKitDocument = new sensorKitDao(value);
-                 const response = await sensorKitDocument.save();
-                 console.log(`sensor kit was created succesfully- sensorKitID: ${response.id}`);
-                 return res.status(200).json(response);
-             } else {
-                 console.log('sensor is already exists');
-                 return res.status(202).json({
-                     message: 'sensor is already exists'
-                 });
-             }
-         } catch(err) {
-            console.error('error: ', err.message)
-             return res.status(500).json({
-                 message: err.message
-             })
-         }
-     }
-
-    getAllKits = async (req,res) => {
+class SensorsKit {
+    createKit = async (req, res) => {
         try {
-            const response = await sensorKitDao.find()
-            return res.status(200).json(response)
-        } catch(err) {
-            console.error('error:' , err.message)
+            const newSensorsKit = new sensorsKitDao();
+            const response = await newSensorsKit.save();
+            console.log(`Sensors kit was created succesfully- sensorKitID: ${response.id}`);
+            return res.status(201).json(response);
+        } catch (err) {
+            console.error(`Error while trying to create new sensors kit: ${err.message}`);
             return res.status(500).json({
                 message: err.message
-            })
+            });
         }
     }
 
-    getKitByID = async (req,res) => {
-        if(!req.params.id) {
-            return res.status(400).json({
-                message: 'id parameter is required'
-            })
-        }
-
+    getAllKits = async (req, res) => {
         try {
-            const response = await sensorKitDao.findOne({id: req.params.id})
-            if(!response) {
+            const response = await sensorsKitDao.find();
+            if (response.length === 0)
                 return res.status(404).json({
-                    message: `sensor kit not found`
+                    message: 'Not found'
+                });
+            return res.status(200).json(response);
+        } catch (err) {
+            console.error(`Error while trying to get all sensor kits: ${err.message}`);
+            return res.status(500).json({
+                message: err.message
+            });
+        }
+    }
+
+    getKitByID = async (req, res) => {
+        try {
+            const response = await sensorsKitDao.findOne({ id: req.params.id });
+            if (!response) {
+                return res.status(404).json({
+                    message: `Not found`
                 });
             }
             return res.status(200).json(response);
-        } catch(err) {
+        } catch (err) {
             console.error(`Error while trying to get sensor kit (${req.params.id}): ${err.message}`);
             return res.status(500).json({
                 message: `Internal server error`
@@ -73,73 +49,28 @@ class SensorKit {
         }
     }
 
-    updateIPs = async (req,res) => {
-        if (!req.params.id)
+    updateIPs = async (req, res) => {
+        const schema = Joi.object({
+            sensor: Joi.string().valid('sensor1', 'sensor2', 'sensor3', 'sensor4', 'sensor5', 'sensor6', 'sensor7').required(),
+            ip: Joi.string().ip().required()
+        });
+        const { error, value } = schema.validate(req.body);
+        if (error)
             return res.status(400).json({
-                message: `sensorKitID query parameter is required`
+                message: error.details[0].message
             });
-
-         const schema = Joi.object({
-             sensor1: Joi.string().required(),
-             sensor2: Joi.string().required(),
-             sensor3: Joi.string().required(),
-             sensor4: Joi.string().required(),
-             sensor5: Joi.string().required(),
-             sensor6: Joi.string().required(),
-             sensor7: Joi.string().required(),
-         })
-
-        const {error , value } = schema.validate(req.body)
-        if (error) {
-            console.error("error has occured: " , error.message)
-            return res.status(500).json({
-                message: error.message
-            });
-        }
         try {
-            const sensorKitDocument = await sensorKitDao.findOne({id: req.params.id})
-            if(!sensorKitDocument) {
+            const sensorKitDocument = await sensorsKitDao.findOne({ id: req.params.id });
+            if (!sensorKitDocument)
                 return res.status(404).json({
-                    message: 'sensor kit not found'
+                    message: 'Not found'
                 });
-            }
-            if (sensorKitDocument.IPs.sensor1) sensorKitDocument.IPs.sensor1 = value.sensor1
-            if (sensorKitDocument.IPs.sensor2) sensorKitDocument.IPs.sensor2 = value.sensor2
-            if (sensorKitDocument.IPs.sensor3) sensorKitDocument.IPs.sensor3 = value.sensor3
-            if (sensorKitDocument.IPs.sensor4) sensorKitDocument.IPs.sensor4 = value.sensor4
-            if (sensorKitDocument.IPs.sensor5) sensorKitDocument.IPs.sensor5 = value.sensor5
-            if (sensorKitDocument.IPs.sensor6) sensorKitDocument.IPs.sensor6 = value.sensor6
-            if (sensorKitDocument.IPs.sensor7) sensorKitDocument.IPs.sensor7 = value.sensor7
-            const response = await sensorKitDocument.save()
+            const { sensor, ip } = value;
+            sensorKitDocument.IPs[sensor] = ip;
+            const response = await sensorKitDocument.save();
             return res.status(200).json(response);
-        } catch(err) {
-            console.error(`Error while trying to edit sensorKit (${req.params.id}): ${err.message}`);
-            return res.status(500).json({
-                message: `Internal server error`
-            });
-        }
-    }
-
-    disableKit = async (req,res) => {
-        if (!req.params.id)
-            return res.status(400).json({
-                message: `sensorKitID query parameter is required`
-            });
-
-        try{
-            const sensorKitDocument = await sensorKitDao.findOneAndUpdate(
-                {id: req.params.id},
-                {disable: true}
-                )
-            if(!sensorKitDocument) {
-                return res.status(404).json({
-                    message: `sensor kit not found`
-                });
-            }
-            return res.status(200).json(sensorKitDocument) // notice: its returning the object as it was BEFORE the update
-
-        } catch(err) {
-            console.error(`Error while trying to edit sensorKit (${req.params.id}): ${err.message}`);
+        } catch (err) {
+            console.error(`Error while trying to update ${sensor} of kit ${req.params.id} with new IP: ${err.message}`);
             return res.status(500).json({
                 message: `Internal server error`
             });
@@ -147,9 +78,23 @@ class SensorKit {
     }
 
     // TODO:: will be continued
-    start = async (req,res) => {
+    start = async (req, res) => {
+        // send to each sensor, command to start scan for x seconds
 
+        // getting the sensors output
+
+        // clean noises -- send to lambda
+
+        // normalize data -- send to lambda
+
+        // store in database 
+
+        // comparing against normal walking model -- send to lambda
+
+        // store diagnostic in database
+
+        // returning results to client
     }
 }
 
-module.exports = SensorKit
+module.exports = SensorsKit;

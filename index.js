@@ -20,7 +20,7 @@ app.use('/api/defaultPlan', defaultPlan);
 app.use('/api/patient', patient);
 app.use('/api/patientGaitModel', patientGaitModel);
 app.use('/api/rehabPlan', rehabPlan);
-app.use('/api/sensorKit', sensorKit);
+app.use('/api/sensorsKit', sensorKit);
 app.use('/api/test', test);
 app.use('/api/therapist', therapist);
 app.use('/api/video', video);
