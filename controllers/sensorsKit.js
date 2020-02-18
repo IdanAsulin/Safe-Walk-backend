@@ -87,11 +87,15 @@ class SensorsKit {
 
         // normalize data -- send to lambda
 
-        // store in database 
+        // gets the relevant patient
+
+        // creates new test in the database
+
+        // store in database - patientGaitModel collection
 
         // comparing against normal walking model -- send to lambda
 
-        // store diagnostic in database
+        // store diagnostic in database - patient collection
 
         // returning results to client
     }
