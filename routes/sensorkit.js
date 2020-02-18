@@ -1,8 +1,8 @@
 const express = require('express');
-const SensorKit = require('../controllers/sensorKit');
+const SensorsKit = require('../controllers/sensorsKit');
 
 const router = express.Router();
-const sensorsKit = new SensorKit()
+const sensorsKit = new SensorsKit();
 
 router.post('/', sensorsKit.createKit);
 router.get('/', sensorsKit.getAllKits);
