@@ -35,36 +35,6 @@ class Therapist {
         }
     }
 
-    addPatient = async (req, res) => {
-        const schema = Joi.object({ patientID: Joi.string().required() });
-        const { error, value } = schema.validate(req.body);
-        if (error)
-            return res.status(400).json({
-                message: error.details[0].message
-            });
-        const { patientID } = value;
-        try {
-            const therapistDocument = await therapistDao.findOne({ id: req.params.id });
-            if (!therapistDocument)
-                return res.status(404).json({
-                    message: `Therapist not found`
-                });
-            if (therapistDocument.patients.indexOf(patientID) !== -1)
-                return res.status(409).json({
-                    message: `Patient already exist in ${therapistDocument.name}'s patients list`
-                });
-            therapistDocument.patients = [...therapistDocument.patients, patientID];
-            const response = await therapistDocument.save();
-            console.log(`Therapist (${req.params.id}) was updated with new patient (${patientID})`);
-            return res.status(200).json(response);
-        } catch (ex) {
-            console.error(`Error while trying to add new patient (${patientID}) to therapist (${req.params.id}): ${ex.message}`);
-            return res.status(500).json({
-                message: `Internal server error`
-            });
-        }
-    }
-
     getAllTherapists = async (req, res) => {
         try {
             const response = await therapistDao.find();

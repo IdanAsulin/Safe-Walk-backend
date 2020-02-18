@@ -15,8 +15,8 @@ class Video {
         const { name, link } = value;
         const videoToCreate = new videoDao({ name, link });
         try {
-            const isEntityExist = await videoDao.findOne({ link: req.body.link });
-            if (isEntityExist)
+            const videoExist = await videoDao.findOne({ link: req.body.link });
+            if (videoExist)
                 return res.status(409).json({
                     message: 'Video already exists'
                 });
@@ -32,14 +32,6 @@ class Video {
     }
 
     removeVideo = async (req, res) => {
-        if (!req.params.id)
-            return res.status(400).json({
-                message: 'Video ID path parameter was not provided'
-            });
-        if (typeof req.params.id !== 'string')
-            return res.status(400).json({
-                message: 'Video ID query parameter must be of type string'
-            });
         try {
             const response = await videoDao.findOneAndRemove({ id: req.params.id });
             if (!response)
@@ -93,10 +85,6 @@ class Video {
         if (!req.params.id)
             return res.status(400).json({
                 message: 'video ID path parameter was not provided'
-            });
-        if (typeof req.params.id !== 'string')
-            return res.status(400).json({
-                message: 'video ID query parameter must be of type string'
             });
         if (!req.body.name && !req.body.link)
             return res.status(400).json({

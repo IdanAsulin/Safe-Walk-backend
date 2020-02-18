@@ -9,12 +9,14 @@ const test = require('./routes/test');
 const therapist = require('./routes/therapist');
 const video = require('./routes/video');
 const auth = require('./routes/auth');
+const { validateRequestBody } = require('./middlewares');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(validateRequestBody);
 
 app.use('/api/defaultPlan', defaultPlan);
 app.use('/api/patient', patient);
@@ -25,5 +27,6 @@ app.use('/api/test', test);
 app.use('/api/therapist', therapist);
 app.use('/api/video', video);
 app.use('/auth', auth);
+app.all('*', (req, res) => res.status(404).json({ message: `Endpoint not found` }));
 
 app.listen(port, () => console.log(`Listening on port: ${port}`));

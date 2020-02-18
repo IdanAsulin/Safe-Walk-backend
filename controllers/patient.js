@@ -1,6 +1,9 @@
-const patientDao = require('../dao/patient');
 const Joi = require('joi');
 const crypto = require('crypto');
+const patientDao = require('../dao/patient');
+const sensorsKitDao = require('../dao/sensorsKit');
+const planDao = require('../dao/plan');
+const testDao = require('../dao/test');
 
 class Patient {
     createPatient = async (req, res) => {
@@ -10,25 +13,29 @@ class Patient {
             password: Joi.string().min(6).max(13).required(),
             picture: Joi.string().uri().required(),
             phoneNumber: Joi.string().min(10).max(13).required(),
-            birthDate: Joi.date().required(),
+            age: Joi.number().min(0).max(120).required(),
             gender: Joi.string().valid('male', 'female').required(),
-            sensorsKitID: Joi.string().required(),
-            therapistID: Joi.string().required()
+            sensorsKitID: Joi.string().required()
         });
         const { error, value } = schema.validate(req.body);
         if (error)
             return res.status(400).json({
-                message: error.message
+                message: error.details[0].message
             });
-        let validatedInput = value;
-        const hashedPassword = crypto.createHash('sha256').update(validatedInput.password).digest('base64');
-        validatedInput['password'] = hashedPassword;
-        const newPatient = new patientDao(validatedInput);
+        let { name, mail, password, picture, phoneNumber, age, gender, sensorsKitID } = value;
+        const hashedPassword = crypto.createHash('sha256').update(password).digest('base64');
+        password = hashedPassword;
+        const newPatient = new patientDao({ name, mail, password, picture, phoneNumber, age, gender, sensorsKitID });
         try {
-            let response = await patientDao.findOne({ mail: validatedInput.mail });
+            let response = await patientDao.findOne({ mail: mail });
             if (response)
                 return res.status(409).json({
-                    message: `Patient is already exist`
+                    message: `Patient already exists`
+                });
+            response = await sensorsKitDao.findOne({ id: sensorsKitID });
+            if (!response)
+                return res.status(400).json({
+                    message: `The sensors kit you are trying to update is not exist`
                 });
             response = await newPatient.save();
             console.log(`A new patient was created successfully -- patientID: ${response.id}`);
@@ -47,53 +54,65 @@ class Patient {
             password: Joi.string().min(6).max(13),
             picture: Joi.string().uri(),
             phoneNumber: Joi.string().min(10).max(13),
-            birthDate: Joi.date(),
+            age: Joi.number().min(0).max(120),
             gender: Joi.string().valid('male', 'female'),
             sensorsKitID: Joi.string(),
-            therapistID: Joi.string(),
             waitForPlan: Joi.boolean(),
             rehabPlanID: Joi.string()
         });
         const { error, value } = schema.validate(req.body);
         if (error)
             return res.status(400).json({
-                message: error.message
+                message: error.details[0].message
             });
-        if (!req.params.id)
+        let { name, password, picture, phoneNumber, age, gender, sensorsKitID, waitForPlan, rehabPlanID } = value;
+        if (!name && !password && !picture && !phoneNumber && !age && !gender && !sensorsKitID && !waitForPlan && !rehabPlanID)
             return res.status(400).json({
-                message: `PatientID query parameter is required`
+                message: `You must provide at least one parameter to update`
             });
-        let validatedInput = value;
-        if (validatedInput.password) {
-            const hashedPassword = crypto.createHash('sha256').update(validatedInput.password).digest('base64');
-            validatedInput['password'] = hashedPassword;
+        if (password) {
+            const hashedPassword = crypto.createHash('sha256').update(password).digest('base64');
+            password = hashedPassword;
         }
         try {
             const patientDocument = await patientDao.findOne({ id: req.params.id });
             if (!patientDocument)
                 return res.status(404).json({
-                    message: `Patient not found`
+                    message: `Not found`
                 });
-            if (validatedInput.name)
-                patientDocument.name = validatedInput.name;
-            if (validatedInput.password)
-                patientDocument.password = validatedInput.password;
-            if (validatedInput.picture)
-                patientDocument.picture = validatedInput.picture;
-            if (validatedInput.phoneNumber)
-                patientDocument.phoneNumber = validatedInput.phoneNumber;
-            if (validatedInput.birthDate)
-                patientDocument.birthDate = validatedInput.birthDate;
-            if (validatedInput.gender)
-                patientDocument.gender = validatedInput.gender;
-            if (validatedInput.sensorsKitID)
-                patientDocument.sensorsKitID = validatedInput.sensorsKitID;
-            if (validatedInput.therapistID)
-                patientDocument.therapistID = validatedInput.therapistID;
-            if (validatedInput.waitForPlan)
-                patientDocument.waitForPlan = validatedInput.waitForPlan;
-            if (validatedInput.rehabPlanID)
-                patientDocument.rehabPlanID = validatedInput.rehabPlanID;
+            if (name) patientDocument.name = name;
+            if (password) patientDocument.password = password;
+            if (picture) patientDocument.picture = picture;
+            if (phoneNumber) patientDocument.phoneNumber = phoneNumber;
+            if (age) patientDocument.age = age;
+            if (gender) patientDocument.gender = gender;
+            if (sensorsKitID) {
+                const sensorsKit = await sensorsKitDao.findOne({ id: sensorsKitID });
+                const kitTaken = await patientDao.find({ sensorsKitID: sensorsKitID });
+                if (!sensorsKit)
+                    return res.status(400).json({
+                        message: `The sensors kit you are trying to update is not exist`
+                    });
+                if (kitTaken.length > 0)
+                    return res.status(400).json({
+                        message: `The sensors kit you are trying to update is already taken`
+                    });
+                patientDocument.sensorsKitID = sensorsKitID;
+            }
+            if (waitForPlan) patientDocument.waitForPlan = waitForPlan;
+            if (rehabPlanID) {
+                const rehabPlan = await planDao.findOne({ id: rehabPlanID, type: 'rehabPlan' });
+                const planTaken = await patientDao.find({ rehabPlanID: rehabPlanID });
+                if (!rehabPlan)
+                    return res.status(400).json({
+                        message: `The rehabilitation plan you are trying to update is not exist`
+                    });
+                if (planTaken.length > 0)
+                    return res.status(400).json({
+                        message: `The plan you are trying to update is already taken`
+                    });
+                patientDocument.rehabPlanID = rehabPlanID;
+            }
             const response = await patientDocument.save();
             console.log(`Patient (${req.params.id}) was updated successfully`);
             return res.status(200).json(response);
@@ -108,6 +127,10 @@ class Patient {
     getAllPatients = async (req, res) => {
         try {
             const response = await patientDao.find();
+            if (response.length === 0)
+                return res.status(404).json({
+                    message: `Not found`
+                });
             return res.status(200).json(response);
         } catch (ex) {
             console.error(`Error while trying to get all patients: ${ex.message}`);
@@ -118,10 +141,6 @@ class Patient {
     }
 
     getPatientByID = async (req, res) => {
-        if (!req.params.id)
-            return res.status(500).json({
-                message: `Patient ID query parameter is required`
-            });
         try {
             const response = await patientDao.findOne({ id: req.params.id });
             if (!response)
@@ -138,35 +157,36 @@ class Patient {
     }
 
     addTest = async (req, res) => {
-        if (!req.params.id)
-            return res.status(400).json({
-                message: `Patiend ID query parameter is required`
-            });
         const schema = Joi.object({
             testID: Joi.string().required(),
         });
         const { error, value } = schema.validate(req.body);
         if (error)
             return res.status(400).json({
-                message: error.message
+                message: error.details[0].message
             });
-        const validatedInput = value;
+        const { testID } = value;
         try {
             const patientDocument = await patientDao.findOne({ id: req.params.id });
             if (!patientDocument)
                 return res.status(404).json({
-                    message: `Patient not found`
+                    message: `Not found`
                 });
-            if (patientDocument.testsList.indexOf(validatedInput.testID) !== -1)
+            const testToAdd = await testDao.findOne({ id: testID });
+            if (!testToAdd)
                 return res.status(400).json({
-                    message: `Test already exist`
+                    message: `Test is not exist`
                 });
-            patientDocument.testsList = [...patientDocument.testsList, validatedInput.testID];
+            if (patientDocument.testsList.indexOf(testID) !== -1)
+                return res.status(400).json({
+                    message: `Test already exist in the patient's tests history`
+                });
+            patientDocument.testsList = [...patientDocument.testsList, testID];
             const response = await patientDocument.save();
-            console.log(`Patient (${req.params.id}) was updated with new test (${validatedInput.testID})`);
+            console.log(`Patient (${req.params.id}) was updated with new test (${testID})`);
             return res.status(200).json(response);
         } catch (ex) {
-            console.error(`Error while trying to add new test (${validatedInput.testID}) to patient (${req.params.id}): ${ex.message}`);
+            console.error(`Error while trying to add new test (${testID}) to patient (${req.params.id}): ${ex.message}`);
             return res.status(500).json({
                 message: `Internal server error`
             });

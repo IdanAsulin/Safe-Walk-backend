@@ -18,8 +18,7 @@ const therapistSchema = new Schema({
         required: true
     },
     password: { type: String, required: true },
-    picture: { type: String, required: true },
-    patients: [String]
+    picture: { type: String, required: true }
 });
 
 module.exports = mongoose.model('therapist', therapistSchema);
