@@ -15,11 +15,7 @@ const patientSchema = new Schema({
     },
     mail: {
         type: String,
-        required: true,
-        validate: {
-            validator: email => checkEmail(email),
-            message: props => `${props.value} is not a valid email address`
-        }
+        required: true
     },
     password: { type: String, required: true },
     picture: { type: String, required: true },
