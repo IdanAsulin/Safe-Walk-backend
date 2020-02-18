@@ -134,4 +134,4 @@ class Video {
     }
 }
 
-module.exports = Video
+module.exports = Video;
