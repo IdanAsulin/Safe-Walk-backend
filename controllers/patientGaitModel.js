@@ -8,7 +8,7 @@ class PatientGaitModel {
             x: Joi.number().required(),
             y: Joi.number().required(),
             z: Joi.number().required(),
-        }).required();
+        }).min(1).required();
         const schema = Joi.object({
             testID: Joi.string().required(),
             sensor1RawData: rawDataJoi,

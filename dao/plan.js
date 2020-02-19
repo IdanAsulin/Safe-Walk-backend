@@ -24,7 +24,6 @@ const planSchema = new Schema({
             message: props => `${props.value} must contains at least 1 video`
         }
     },
-    lastModified: { type: Date, default: new Date() },
     instructions: {
         type: String,
         default: ""

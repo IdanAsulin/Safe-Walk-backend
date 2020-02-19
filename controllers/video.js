@@ -82,10 +82,6 @@ class Video {
     }
 
     editVideo = async (req, res) => {
-        if (!req.params.id)
-            return res.status(400).json({
-                message: 'video ID path parameter was not provided'
-            });
         if (!req.body.name && !req.body.link)
             return res.status(400).json({
                 message: `You must provide at least name or link`
