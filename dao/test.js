@@ -17,8 +17,10 @@ const testSchema = new Schema({
         type: Boolean,
         default: false
     },
-    detaildDiagnostic: { type: String, default: 'Waiting for the therapist update' },
-    patientModelID: { type: String, default: "" }
+    detaildDiagnostic: {
+        type: String,
+        default: `Waiting for the therapist's update`
+    }
 });
 
 module.exports = mongoose.model('test', testSchema);

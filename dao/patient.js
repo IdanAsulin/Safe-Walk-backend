@@ -15,16 +15,12 @@ const patientSchema = new Schema({
     },
     mail: {
         type: String,
-        required: true,
-        validate: {
-            validator: email => checkEmail(email),
-            message: props => `${props.value} is not a valid email address`
-        }
+        required: true
     },
     password: { type: String, required: true },
-    picture: { type: String, required: true, default: '' },
+    picture: { type: String, required: true },
     phoneNumber: { type: String, required: true },
-    birthDate: { type: Date, required: true },
+    age: { type: Number, required: true },
     gender: {
         type: String,
         enum: ['male', 'female'],
@@ -36,8 +32,7 @@ const patientSchema = new Schema({
     }],
     waitForPlan: { type: Boolean, default: false },
     rehabPlanID: { type: String, default: "" },
-    sensorsKitID: { type: String, required: true },
-    therapistID: { type: String, required: true }
+    sensorsKitID: { type: String, required: true }
 });
 
 module.exports = mongoose.model('patient', patientSchema);

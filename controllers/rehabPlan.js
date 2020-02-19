@@ -9,26 +9,22 @@ class RehabPlan extends AbstractPlan {
     }
 
     addDefaultPlans = async (req, res) => {
-        if (!req.params.id)
-            return res.status(400).json({
-                message: `PlanID query parameter was not provided`
-            });
         const schema = Joi.object({
-            defaultPlans: Joi.array().required()
+            defaultPlanIDs: Joi.array().items(Joi.string()).min(1).required()
         });
         const { error, value } = schema.validate(req.body);
         if (error)
             return res.status(400).json({
-                message: error.message
+                message: error.details[0].message
             });
-        let validatedInput = value;
+        const { defaultPlanIDs } = value;
         try {
             const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument)
                 return res.status(404).json({
-                    message: `Plan not found`
+                    message: `Not found`
                 });
-            const defaultPlans = await planDao.find({ id: { $in: validatedInput.defaultPlans }, type: 'defaultPlan' });
+            const defaultPlans = await planDao.find({ id: { $in: defaultPlanIDs }, type: 'defaultPlan' });
             if (defaultPlans.length === 0)
                 return res.status(404).json({
                     message: `The default plans you are trying to add were not found`
@@ -39,17 +35,16 @@ class RehabPlan extends AbstractPlan {
                     videosTonsert.push({
                         videoID: video.videoID,
                         times: video.times,
-                        done: false,
-                        type: 'fromDefault'
+                        done: false
                     });
             if (utils.checkForDuplicates(videosTonsert, 'videoID'))
                 return res.status(403).json({
-                    message: `The default plans you are trying to add contains some videos which are the same`
+                    message: `The default plans you are trying to add contain some videos which are the same`
                 });
             planDocument.videos = planDocument.videos.concat(videosTonsert);
             if (utils.checkForDuplicates(planDocument.videos, 'videoID'))
                 return res.status(403).json({
-                    message: `The default plans you are trying to add contains some videos which are already in the patient plan`
+                    message: `The default plans you are trying to add contains some videos which are already exist in the patient's plan`
                 });
             const response = await planDocument.save();
             return res.status(200).json(response);
@@ -62,28 +57,24 @@ class RehabPlan extends AbstractPlan {
     }
 
     removeDefaultPlans = async (req, res) => {
-        if (!req.params.id)
-            return res.status(400).json({
-                message: `PlanID query parameter was not provided`
-            });
         const schema = Joi.object({
-            defaultPlans: Joi.array().required()
+            defaultPlanIDs: Joi.array().items(Joi.string()).min(1).required()
         });
         const { error, value } = schema.validate(req.body);
         if (error)
             return res.status(400).json({
-                message: error.message
+                message: error.details[0].message
             });
-        let validatedInput = value;
+        const { defaultPlanIDs } = value;
         try {
             const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument)
                 return res.status(404).json({
-                    message: `Plan not found`
+                    message: `Not found`
                 });
-            const defaultPlans = await planDao.find({ id: { $in: validatedInput.defaultPlans }, type: 'defaultPlan' });
+            const defaultPlans = await planDao.find({ id: { $in: defaultPlanIDs }, type: 'defaultPlan' });
             if (defaultPlans.length === 0)
-                return res.status(404).json({
+                return res.status(400).json({
                     message: `The default plans you are trying to remove were not found`
                 });
             const videosToRemove = [];

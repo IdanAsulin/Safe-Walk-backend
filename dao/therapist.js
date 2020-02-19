@@ -15,15 +15,10 @@ const therapistSchema = new Schema({
     },
     mail: {
         type: String,
-        required: true,
-        validate: {
-            validator: email => checkEmail(email),
-            message: props => `${props.value} is not a valid email address`
-        }
+        required: true
     },
     password: { type: String, required: true },
-    picture: { type: String, required: false, default: '' },
-    patients: [String]
+    picture: { type: String, required: true }
 });
 
 module.exports = mongoose.model('therapist', therapistSchema);

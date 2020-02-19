@@ -24,12 +24,11 @@ const planSchema = new Schema({
             message: props => `${props.value} must contains at least 1 video`
         }
     },
-    lastModified: { type: Date, default: new Date() },
     instructions: {
         type: String,
         default: ""
     },
-    therapistID: { type: String },
+    therapistID: String,
     type: {
         type: String,
         enum: ['defaultPlan', 'rehabPlan'],

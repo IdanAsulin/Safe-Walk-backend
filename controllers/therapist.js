@@ -13,14 +13,13 @@ class Therapist {
         const { error, value } = schema.validate(req.body);
         if (error)
             return res.status(400).json({
-                message: error.message
+                message: error.details[0].message
             });
-        let validatedInput = value;
-        const hashedPassword = crypto.createHash('sha256').update(validatedInput.password).digest('base64');
-        validatedInput['password'] = hashedPassword;
-        const newTherapist = new therapistDao(validatedInput);
+        let { name, mail, password, picture } = value;
+        password = crypto.createHash('sha256').update(password).digest('base64');
+        const newTherapist = new therapistDao({ name, mail, password, picture });
         try {
-            let response = await therapistDao.findOne({ mail: validatedInput.mail });
+            let response = await therapistDao.findOne({ mail: mail });
             if (response)
                 return res.status(409).json({
                     message: `Therapist is already exist`
@@ -36,45 +35,13 @@ class Therapist {
         }
     }
 
-    addPatient = async (req, res) => {
-        if (!req.params.id)
-            return res.status(400).json({
-                message: `Therapist ID query parameter is required`
-            });
-        const schema = Joi.object({
-            patientID: Joi.string().required(),
-        });
-        const { error, value } = schema.validate(req.body);
-        if (error)
-            return res.status(400).json({
-                message: error.message
-            });
-        const validatedInput = value;
-        try {
-            const therapistDocument = await therapistDao.findOne({ id: req.params.id });
-            if (!therapistDocument)
-                return res.status(404).json({
-                    message: `Therapist not found`
-                });
-            if (therapistDocument.patients.indexOf(validatedInput.patientID) !== -1)
-                return res.status(400).json({
-                    message: `Patient already exist`
-                });
-            therapistDocument.patients = [...therapistDocument.patients, validatedInput.patientID];
-            const response = await therapistDocument.save();
-            console.log(`Therapist (${req.params.id}) was updated with new patient (${validatedInput.patientID})`);
-            return res.status(200).json(response);
-        } catch (ex) {
-            console.error(`Error while trying to add new patient (${validatedInput.patientID}) to therapist (${req.params.id}): ${ex.message}`);
-            return res.status(500).json({
-                message: `Internal server error`
-            });
-        }
-    }
-
     getAllTherapists = async (req, res) => {
         try {
             const response = await therapistDao.find();
+            if (response.length === 0)
+                return res.status(404).json({
+                    message: `Not found`
+                });
             return res.status(200).json(response);
         } catch (ex) {
             console.error(`Error while trying to get all therapists: ${ex.message}`);
@@ -85,10 +52,6 @@ class Therapist {
     }
 
     getTherapistByID = async (req, res) => {
-        if (!req.params.id)
-            return res.status(500).json({
-                message: `Therapist ID query parameter is required`
-            });
         try {
             const response = await therapistDao.findOne({ id: req.params.id });
             if (!response)

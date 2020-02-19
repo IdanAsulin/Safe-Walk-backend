@@ -1,5 +1,8 @@
-const planDao = require('../dao/plan');
 const Joi = require('joi');
+const planDao = require('../dao/plan');
+const videoDao = require('../dao/video');
+const patientDao = require('../dao/patient');
+const therapistDao = require('../dao/therapist');
 const utils = require('../utils');
 
 class AbstractPlan {
@@ -15,7 +18,10 @@ class AbstractPlan {
             schema = Joi.object({
                 name: Joi.string().required(),
                 instructions: Joi.string().required(),
-                videos: Joi.array().required(),
+                videos: Joi.array().items({
+                    videoID: Joi.string().required(),
+                    times: Joi.number().min(1).required()
+                }).min(1).required()
             });
         }
         else {
@@ -23,36 +29,76 @@ class AbstractPlan {
                 name: Joi.string().required(),
                 patientID: Joi.string().required(),
                 instructions: Joi.string().required(),
-                videos: Joi.array().required(),
+                videos: Joi.array().items({
+                    videoID: Joi.string().required(),
+                    times: Joi.number().min(1).required()
+                }).min(1).required(),
                 therapistID: Joi.string().required(),
-                defaultPlans: Joi.array()
+                defaultPlans: Joi.array().items(Joi.string()).min(1)
             });
         }
         const { error, value } = schema.validate(req.body);
         if (error)
             return res.status(400).json({
-                message: error.message
+                message: error.details[0].message
             });
-        let validatedInput = value;
-        validatedInput.type = this.planType;
+        let { name, instructions, videos } = value;
+        let patientID, therapistID, defaultPlans;
+        const type = this.planType;
         if (this.planType === 'rehabPlan') {
-            for (let index = 0; index < validatedInput.videos.length; index++)
-                validatedInput.videos[index] = { ...validatedInput.videos[index], done: false };
+            defaultPlans = value.defaultPlans;
+            therapistID = value.therapistID;
+            patientID = value.patientID;
         }
-        const newPlan = new planDao(validatedInput);
         try {
-            let response;
+            let response, defaultPlanVideos = [];
             if (this.planType === 'rehabPlan') {
-                response = await planDao.findOne({ patientID: validatedInput.patientID });
+                response = await planDao.findOne({ patientID: patientID });
                 if (response)
                     return res.status(409).json({
                         message: `This patient already have rehabilitation plan`
                     });
+                response = await patientDao.findOne({ id: patientID });
+                if (!response)
+                    return res.status(400).json({
+                        message: `The patient you have sent is not exist`
+                    });
+                response = await therapistDao.findOne({ id: therapistID });
+                if (!response)
+                    return res.status(400).json({
+                        message: `The therapist you have sent is not exist`
+                    });
+                if (defaultPlans) {
+                    response = await planDao.find({ id: { $in: defaultPlans } });
+                    if (response.length !== defaultPlans.length)
+                        return res.status(400).json({
+                            message: `Some of the default plans you have sent are not exist`
+                        });
+                    for (let defaultPlan of response)
+                        for (let video of defaultPlan.videos)
+                            defaultPlanVideos.push(video._doc);
+                    videos = videos.concat(defaultPlanVideos);
+                }
+                for (let index = 0; index < videos.length; index++)
+                    videos[index] = { ...videos[index], done: false };
             }
-            if (utils.checkForDuplicates(validatedInput.videos, 'videoID'))
+            let videoIDs = [];
+            for (let video of videos)
+                videoIDs.push(video.videoID);
+            if (utils.checkForDuplicates(videos, 'videoID'))
                 return res.status(403).json({
                     message: `You've sent duplicated videos`
                 });
+            response = await videoDao.find({ id: { $in: videoIDs } });
+            if (response.length !== videos.length)
+                return res.status(400).json({
+                    message: `You've sent videos which are not exist`
+                });
+            let newPlan;
+            if (this.planType === 'defaultPlan')
+                newPlan = new planDao({ name, instructions, videos, type });
+            else
+                newPlan = new planDao({ name, instructions, videos, type, therapistID, patientID });
             response = await newPlan.save();
             return res.status(201).json(response);
         } catch (ex) {
@@ -64,10 +110,6 @@ class AbstractPlan {
     }
 
     editPlan = async (req, res) => {
-        if (!req.params.id)
-            return res.status(400).json({
-                message: `PlanID query parameter was not provided`
-            });
         const schema = Joi.object({
             name: Joi.string(),
             instructions: Joi.string()
@@ -75,19 +117,23 @@ class AbstractPlan {
         const { error, value } = schema.validate(req.body);
         if (error)
             return res.status(400).json({
-                message: error.message
+                message: error.details[0].message
             });
-        let validatedInput = value;
+        const { name, instructions } = value;
         try {
             const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument)
                 return res.status(404).json({
-                    message: `Plan not found`
+                    message: `Not found`
                 });
-            if (validatedInput.name)
-                planDocument.name = validatedInput.name;
-            if (validatedInput.instructions)
-                planDocument.instructions = validatedInput.instructions;
+            if (!name && !instructions)
+                return res.status(400).json({
+                    message: `You have to provide at least one parameter to update`
+                });
+            if (name)
+                planDocument.name = name;
+            if (instructions)
+                planDocument.instructions = instructions;
             const response = await planDocument.save();
             return res.status(200).json(response);
         } catch (ex) {
@@ -99,12 +145,9 @@ class AbstractPlan {
     }
 
     removePlan = async (req, res) => {
-        if (!req.params.id)
-            return res.status(400).json({
-                message: `PlanID query parameter was not provided`
-            });
         try {
-            await planDao.findOneAndRemove({ id: req.params.id, type: this.planType });
+            const response = await planDao.findOneAndRemove({ id: req.params.id, type: this.planType });
+            if (response) return res.status(200).json();
             return res.status(202).json();
         } catch (ex) {
             console.error(`Error while trying to remove plan ${req.params.id}: ${ex.message}`);
@@ -117,6 +160,10 @@ class AbstractPlan {
     getAllPlans = async (req, res) => {
         try {
             const response = await planDao.find({ type: this.planType });
+            if (response.length === 0)
+                return res.status(404).json({
+                    message: `Not found`
+                });
             return res.status(200).json(response);
         } catch (ex) {
             console.error(`Error while trying to get all plans: ${ex.message}`);
@@ -127,10 +174,6 @@ class AbstractPlan {
     }
 
     getPlanByID = async (req, res) => {
-        if (!req.params.id)
-            return res.status(400).json({
-                message: `PlanID query parameter was not provided`
-            });
         try {
             const response = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!response)
@@ -147,34 +190,41 @@ class AbstractPlan {
     }
 
     addVideos = async (req, res) => {
-        if (!req.params.id)
-            return res.status(400).json({
-                message: `PlanID query parameter was not provided`
-            });
         const schema = Joi.object({
-            videos: Joi.array().required()
+            videos: Joi.array().items({
+                videoID: Joi.string().required(),
+                times: Joi.number().min(1).required()
+            }).min(1).required()
         });
         const { error, value } = schema.validate(req.body);
         if (error)
             return res.status(400).json({
-                message: error.message
+                message: error.details[0].message
             });
-        let validatedInput = value;
+        const { videos } = value;
+        const videoIDs = [];
+        for (let video of videos)
+            videoIDs.push(video.videoID);
         try {
             const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument)
                 return res.status(404).json({
-                    message: `Plan not found`
+                    message: `Not found`
                 });
-            if (utils.checkForDuplicates(validatedInput.videos, 'videoID'))
+            if (utils.checkForDuplicates(videos, 'videoID'))
                 return res.status(403).json({
                     message: `You've sent duplicated videos`
                 });
+            const videosDocs = await videoDao.find({ id: { $in: videoIDs } });
+            if (videosDocs.length !== videos.length)
+                return res.status(400).json({
+                    message: `You've sent videos which are not exist`
+                });
             if (this.planType === 'rehabPlan') {
-                for (let index = 0; index < validatedInput.videos.length; index++)
-                    validatedInput.videos[index] = { ...validatedInput.videos[index], done: false };
+                for (let index = 0; index < videos.length; index++)
+                    videos[index] = { ...videos[index], done: false };
             }
-            planDocument.videos = planDocument.videos.concat(validatedInput.videos)
+            planDocument.videos = planDocument.videos.concat(videos);
             if (utils.checkForDuplicates(planDocument.videos, 'videoID'))
                 return res.status(403).json({
                     message: `You've sent videos which are already exist`
@@ -190,33 +240,29 @@ class AbstractPlan {
     }
 
     removeVideos = async (req, res) => {
-        if (!req.params.id)
-            return res.status(400).json({
-                message: `PlanID query parameter was not provided`
-            });
         const schema = Joi.object({
-            videos: Joi.array().required()
+            videoIDs: Joi.array().items(Joi.string()).min(1).required()
         });
         const { error, value } = schema.validate(req.body);
         if (error)
             return res.status(400).json({
-                message: error.message
+                message: error.details[0].message
             });
-        let validatedInput = value;
+        const { videoIDs } = value;
         try {
             const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument)
                 return res.status(404).json({
-                    message: `Plan not found`
+                    message: `Not found`
                 });
-            for (let videoID of validatedInput.videos) {
+            for (let videoID of videoIDs) {
                 const index = planDocument.videos.findIndex(item => item.videoID === videoID);
                 if (index !== -1)
                     planDocument.videos.splice(index, 1);
             }
             if (planDocument.videos.length === 0)
                 return res.status(400).json({
-                    message: `You can not delete all videos from plan`
+                    message: `You are trying to delete all videos from plan, in such case you have to remove the all plan`
                 });
             const response = await planDocument.save();
             return res.status(200).json(response);
