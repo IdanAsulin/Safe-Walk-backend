@@ -1,6 +1,8 @@
 const Joi = require('joi');
 const planDao = require('../dao/plan');
 const videoDao = require('../dao/video');
+const patientDao = require('../dao/patient');
+const therapistDao = require('../dao/therapist');
 const utils = require('../utils');
 
 class AbstractPlan {
@@ -22,49 +24,81 @@ class AbstractPlan {
                 }).min(1).required()
             });
         }
-        // else {
-        //     schema = Joi.object({
-        //         name: Joi.string().required(),
-        //         patientID: Joi.string().required(),
-        //         instructions: Joi.string().required(),
-        //         videos: Joi.array().required(),
-        //         therapistID: Joi.string().required(),
-        //         defaultPlans: Joi.array()
-        //     });
-        // }
+        else {
+            schema = Joi.object({
+                name: Joi.string().required(),
+                patientID: Joi.string().required(),
+                instructions: Joi.string().required(),
+                videos: Joi.array().items({
+                    videoID: Joi.string().required(),
+                    times: Joi.number().min(1).required()
+                }).min(1).required(),
+                therapistID: Joi.string().required(),
+                defaultPlans: Joi.array().items(Joi.string()).min(1)
+            });
+        }
         const { error, value } = schema.validate(req.body);
         if (error)
             return res.status(400).json({
                 message: error.details[0].message
             });
-        const { name, instructions, videos } = value;
+        let { name, instructions, videos } = value;
+        let patientID, therapistID, defaultPlans;
         const type = this.planType;
-        // if (planType === 'rehabPlan') {
-        //     for (let index = 0; index < videos.length; index++)
-        //         validatedInput.videos[index] = { ...validatedInput.videos[index], done: false };
-        // }
-        const videoIDs = [];
-        for (let video of videos)
-            videoIDs.push(video.videoID);
+        if (this.planType === 'rehabPlan') {
+            defaultPlans = value.defaultPlans;
+            therapistID = value.therapistID;
+            patientID = value.patientID;
+        }
         try {
-            const newPlan = new planDao({ name, instructions, videos, type });
-            let response;
+            let response, defaultPlanVideos = [];
+            if (this.planType === 'rehabPlan') {
+                response = await planDao.findOne({ patientID: patientID });
+                if (response)
+                    return res.status(409).json({
+                        message: `This patient already have rehabilitation plan`
+                    });
+                response = await patientDao.findOne({ id: patientID });
+                if (!response)
+                    return res.status(400).json({
+                        message: `The patient you have sent is not exist`
+                    });
+                response = await therapistDao.findOne({ id: therapistID });
+                if (!response)
+                    return res.status(400).json({
+                        message: `The therapist you have sent is not exist`
+                    });
+                if (defaultPlans) {
+                    response = await planDao.find({ id: { $in: defaultPlans } });
+                    if (response.length !== defaultPlans.length)
+                        return res.status(400).json({
+                            message: `Some of the default plans you have sent are not exist`
+                        });
+                    for (let defaultPlan of response)
+                        for (let video of defaultPlan.videos)
+                            defaultPlanVideos.push(video._doc);
+                    videos = videos.concat(defaultPlanVideos);
+                }
+                for (let index = 0; index < videos.length; index++)
+                    videos[index] = { ...videos[index], done: false };
+            }
+            let videoIDs = [];
+            for (let video of videos)
+                videoIDs.push(video.videoID);
+            if (utils.checkForDuplicates(videos, 'videoID'))
+                return res.status(403).json({
+                    message: `You've sent duplicated videos`
+                });
             response = await videoDao.find({ id: { $in: videoIDs } });
             if (response.length !== videos.length)
                 return res.status(400).json({
                     message: `You've sent videos which are not exist`
                 });
-            // if (this.planType === 'rehabPlan') {
-            //     response = await planDao.findOne({ patientID: validatedInput.patientID });
-            //     if (response)
-            //         return res.status(409).json({
-            //             message: `This patient already have rehabilitation plan`
-            //         });
-            // }
-            if (utils.checkForDuplicates(videos, 'videoID'))
-                return res.status(403).json({
-                    message: `You've sent duplicated videos`
-                });
+            let newPlan;
+            if (this.planType === 'defaultPlan')
+                newPlan = new planDao({ name, instructions, videos, type });
+            else
+                newPlan = new planDao({ name, instructions, videos, type, therapistID, patientID });
             response = await newPlan.save();
             return res.status(201).json(response);
         } catch (ex) {
@@ -177,20 +211,20 @@ class AbstractPlan {
                 return res.status(404).json({
                     message: `Not found`
                 });
+            if (utils.checkForDuplicates(videos, 'videoID'))
+                return res.status(403).json({
+                    message: `You've sent duplicated videos`
+                });
             const videosDocs = await videoDao.find({ id: { $in: videoIDs } });
             if (videosDocs.length !== videos.length)
                 return res.status(400).json({
                     message: `You've sent videos which are not exist`
                 });
-            if (utils.checkForDuplicates(videos, 'videoID'))
-                return res.status(403).json({
-                    message: `You've sent duplicated videos`
-                });
-            // if (this.planType === 'rehabPlan') {
-            //     for (let index = 0; index < validatedInput.videos.length; index++)
-            //         validatedInput.videos[index] = { ...validatedInput.videos[index], done: false };
-            // }
-            planDocument.videos = planDocument.videos.concat(videos)
+            if (this.planType === 'rehabPlan') {
+                for (let index = 0; index < videos.length; index++)
+                    videos[index] = { ...videos[index], done: false };
+            }
+            planDocument.videos = planDocument.videos.concat(videos);
             if (utils.checkForDuplicates(planDocument.videos, 'videoID'))
                 return res.status(403).json({
                     message: `You've sent videos which are already exist`

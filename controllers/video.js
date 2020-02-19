@@ -26,7 +26,7 @@ class Video {
         } catch (err) {
             console.error(`Error while trying to create new video: ${err.message}`);
             return res.status(500).json({
-                message: err.message
+                message: 'Internal server error'
             });
         }
     }
@@ -43,7 +43,7 @@ class Video {
         } catch (err) {
             console.error(`Error while trying to remove video - ${req.params.id}: ${err.message}`);
             return res.status(500).json({
-                message: err.message
+                message: 'Internal server error'
             });
         }
     }
@@ -59,7 +59,7 @@ class Video {
         } catch (err) {
             console.log(`Error while trying to get all videos: ${err.message}`);
             return res.status(500).json({
-                message: err.message
+                message: 'Internal server error'
             });
         }
     }
@@ -76,7 +76,7 @@ class Video {
         } catch (err) {
             console.error(`Error while trying to get video ID - ${req.params.id}: ${err.message}`);
             return res.status(500).json({
-                message: err.message
+                message: 'Internal server error'
             });
         }
     }
@@ -112,7 +112,7 @@ class Video {
         } catch (err) {
             console.error(`Error while trying to edit video - ${req.params.id}: ${err.message}`);
             return res.status(500).json({
-                message: err.message
+                message: 'Internal server error'
             });
         }
     }
