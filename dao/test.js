@@ -17,7 +17,7 @@ const testSchema = new Schema({
         type: Boolean,
         default: false
     },
-    detaildDiagnostic: {
+    detailedDiagnostic: {
         type: String,
         default: `Waiting for the therapist's update`
     }

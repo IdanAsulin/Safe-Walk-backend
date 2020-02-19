@@ -26,6 +26,11 @@ class PatientGaitModel {
             });
         try {
             const { testID, sensor1RawData, sensor2RawData, sensor3RawData, sensor4RawData, sensor5RawData, sensor6RawData, sensor7RawData } = value;
+            const model = await patientGaitModelDao.findOne({ testID: testID });
+            if (model)
+                return res.status(404).json({
+                    message: "testID already updated with gait model"
+                });
             const test = await testDao.findOne({ id: testID });
             if (!test)
                 return res.status(404).json({
