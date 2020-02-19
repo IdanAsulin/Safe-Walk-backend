@@ -1,5 +1,5 @@
-const videoDao = require('../dao/video')
-const Joi = require('joi')
+const videoDao = require('../dao/video');
+const Joi = require('joi');
 
 class Video {
     createVideo = async (req, res) => {
@@ -22,7 +22,7 @@ class Video {
                 });
             const addedVideo = await videoToCreate.save();
             console.log(`Video was created succesfully - videoID: ${addedVideo.id}`);
-            return res.status(400).json(addedVideo);
+            return res.status(201).json(addedVideo);
         } catch (err) {
             console.error(`Error while trying to create new video: ${err.message}`);
             return res.status(500).json({
@@ -74,7 +74,7 @@ class Video {
             console.log(`Returns video - videoID: ${req.params.id}`);
             return res.status(200).json(response);
         } catch (err) {
-            console.error(`Error while trying to get video ID - ${req.params.id}: ${err.message}`);
+            console.error(`Error while trying to get video - ${req.params.id}: ${err.message}`);
             return res.status(500).json({
                 message: 'Internal server error'
             });
