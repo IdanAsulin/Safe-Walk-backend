@@ -1,6 +1,7 @@
-const therapistDao = require('../dao/therapist');
 const Joi = require('joi');
 const crypto = require('crypto');
+const therapistDao = require('../dao/therapist');
+const logger = require('../logger');
 
 class Therapist {
     createTherapist = async (req, res) => {

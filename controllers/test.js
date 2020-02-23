@@ -1,6 +1,7 @@
 const Joi = require('joi');
 const testDao = require('../dao/test');
 const patientDao = require('../dao/patient');
+const logger = require('../logger');
 
 class Test {
     createTest = async (req, res) => {

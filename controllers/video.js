@@ -1,5 +1,6 @@
-const videoDao = require('../dao/video');
 const Joi = require('joi');
+const videoDao = require('../dao/video');
+const logger = require('../logger');
 
 class Video {
     createVideo = async (req, res) => {

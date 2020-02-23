@@ -1,5 +1,6 @@
 const Joi = require('joi');
 const sensorsKitDao = require('../dao/sensorsKit');
+const logger = require('../logger');
 
 class SensorsKit {
     createKit = async (req, res) => {

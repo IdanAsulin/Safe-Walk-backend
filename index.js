@@ -1,5 +1,6 @@
 require('./dbConnection');
 const express = require('express');
+const cors = require('cors');
 const defaultPlan = require('./routes/defaultPlan');
 const patient = require('./routes/patient');
 const patientGaitModel = require('./routes/patientGaitModel');
@@ -14,6 +15,7 @@ const { validateRequestBody } = require('./middlewares');
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(validateRequestBody);

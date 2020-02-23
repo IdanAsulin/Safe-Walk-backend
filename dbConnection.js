@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const config = require('./config.json');
+const logger = require('./logger');
 
 const options = {
     useNewUrlParser: true,
@@ -7,7 +8,7 @@ const options = {
 };
 
 mongoose.connect(config.DB_CONNECTION_URL, options)
-    .then(() => console.log(`Connected to the database`))
+    .then(() => logger.info(`Connected to the database`))
     .catch(error => {
-        console.error(`An error occured while trying to connect to the database: ${error.message}`);
+        logger.error(`An error occured while trying to connect to the database: ${error.message}`);
     });
