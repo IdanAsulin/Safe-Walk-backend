@@ -1,15 +1,16 @@
 const Joi = require('joi');
 const sensorsKitDao = require('../dao/sensorsKit');
+const logger = require('../logger');
 
 class SensorsKit {
     createKit = async (req, res) => {
         try {
             const newSensorsKit = new sensorsKitDao();
             const response = await newSensorsKit.save();
-            console.log(`Sensors kit was created succesfully- sensorKitID: ${response.id}`);
+            logger.info(`Sensors kit was created succesfully- sensorKitID: ${response.id}`);
             return res.status(201).json(response);
         } catch (err) {
-            console.error(`Error while trying to create new sensors kit: ${err.message}`);
+            logger.error(`Error while trying to create new sensors kit: ${err.message}`);
             return res.status(500).json({
                 message: err.message
             });
@@ -19,13 +20,16 @@ class SensorsKit {
     getAllKits = async (req, res) => {
         try {
             const response = await sensorsKitDao.find();
-            if (response.length === 0)
+            if (response.length === 0) {
+                logger.warn(`No kits to return`);
                 return res.status(404).json({
                     message: 'Not found'
                 });
+            }
+            logger.info(`All kits returned to the client`);
             return res.status(200).json(response);
         } catch (err) {
-            console.error(`Error while trying to get all sensor kits: ${err.message}`);
+            logger.error(`Error while trying to get all sensor kits: ${err.message}`);
             return res.status(500).json({
                 message: err.message
             });
@@ -36,13 +40,15 @@ class SensorsKit {
         try {
             const response = await sensorsKitDao.findOne({ id: req.params.id });
             if (!response) {
+                logger.warn(`Sensor kit ${req.params.id} not found`);
                 return res.status(404).json({
                     message: `Not found`
                 });
             }
+            logger.info(`Sensor kit ${req.params.id} details returned to the client`);
             return res.status(200).json(response);
         } catch (err) {
-            console.error(`Error while trying to get sensor kit (${req.params.id}): ${err.message}`);
+            logger.error(`Error while trying to get sensor kit (${req.params.id}): ${err.message}`);
             return res.status(500).json({
                 message: `Internal server error`
             });
@@ -55,22 +61,27 @@ class SensorsKit {
             ip: Joi.string().ip().required()
         });
         const { error, value } = schema.validate(req.body);
-        if (error)
+        if (error) {
+            logger.warn(`Bad schema of body parameter: ${JSON.stringify(req.body)}`);
             return res.status(400).json({
                 message: error.details[0].message
             });
+        }
         try {
             const sensorKitDocument = await sensorsKitDao.findOne({ id: req.params.id });
-            if (!sensorKitDocument)
+            if (!sensorKitDocument) {
+                logger.warn(`Sensor kit ${req.params.id} not found`);
                 return res.status(404).json({
                     message: 'Not found'
                 });
+            }
             const { sensor, ip } = value;
             sensorKitDocument.IPs[sensor] = ip;
             const response = await sensorKitDocument.save();
+            logger.info(`IPs updated successfully in kit ${req.params.id}`);
             return res.status(200).json(response);
         } catch (err) {
-            console.error(`Error while trying to update ${sensor} of kit ${req.params.id} with new IP: ${err.message}`);
+            logger.error(`Error while trying to update ${sensor} of kit ${req.params.id} with new IP: ${err.message}`);
             return res.status(500).json({
                 message: `Internal server error`
             });

@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const uuidv4 = require('uuid/v4');
-const { checkEmail } = require('../utils');
 
 const Schema = mongoose.Schema;
 

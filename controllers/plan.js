@@ -4,11 +4,14 @@ const videoDao = require('../dao/video');
 const patientDao = require('../dao/patient');
 const therapistDao = require('../dao/therapist');
 const utils = require('../utils');
+const logger = require('../logger');
 
 class AbstractPlan {
     constructor(planType) {
-        if (planType !== 'defaultPlan' && planType !== 'rehabPlan')
+        if (planType !== 'defaultPlan' && planType !== 'rehabPlan') {
+            logger.error(`Unsupported plan type ${planType}`);
             throw new Error(`Unsupported plan type`);
+        }
         this.planType = planType;
     }
 
@@ -38,10 +41,12 @@ class AbstractPlan {
             });
         }
         const { error, value } = schema.validate(req.body);
-        if (error)
+        if (error) {
+            logger.warn(`Bad schema of body parameter: ${JSON.stringify(req.body)}`);
             return res.status(400).json({
                 message: error.details[0].message
             });
+        }
         let { name, instructions, videos } = value;
         let patientID, therapistID, defaultPlans;
         const type = this.planType;
@@ -54,26 +59,34 @@ class AbstractPlan {
             let response, defaultPlanVideos = [];
             if (this.planType === 'rehabPlan') {
                 response = await planDao.findOne({ patientID: patientID });
-                if (response)
+                if (response) {
+                    logger.warn(`Patient ${patientID} already have rehabilitation plan`);
                     return res.status(409).json({
                         message: `This patient already have rehabilitation plan`
                     });
+                }
                 response = await patientDao.findOne({ id: patientID });
-                if (!response)
+                if (!response) {
+                    logger.warn(`Patient ${patientID} is not exist`);
                     return res.status(400).json({
                         message: `The patient you have sent is not exist`
                     });
+                }
                 response = await therapistDao.findOne({ id: therapistID });
-                if (!response)
+                if (!response) {
+                    logger.warn(`Therapist ${therapistID} is not exist`);
                     return res.status(400).json({
                         message: `The therapist you have sent is not exist`
                     });
+                }
                 if (defaultPlans) {
                     response = await planDao.find({ id: { $in: defaultPlans } });
-                    if (response.length !== defaultPlans.length)
+                    if (response.length !== defaultPlans.length) {
+                        logger.warn(`Some of the default plans the user sent are not exist`);
                         return res.status(400).json({
                             message: `Some of the default plans you have sent are not exist`
                         });
+                    }
                     for (let defaultPlan of response)
                         for (let video of defaultPlan.videos)
                             defaultPlanVideos.push(video._doc);
@@ -85,24 +98,29 @@ class AbstractPlan {
             let videoIDs = [];
             for (let video of videos)
                 videoIDs.push(video.videoID);
-            if (utils.checkForDuplicates(videos, 'videoID'))
+            if (utils.checkForDuplicates(videos, 'videoID')) {
+                logger.warn(`User sent duplicated videos`);
                 return res.status(403).json({
                     message: `You've sent duplicated videos`
                 });
+            }
             response = await videoDao.find({ id: { $in: videoIDs } });
-            if (response.length !== videos.length)
+            if (response.length !== videos.length) {
+                logger.warn(`User sent videos which are not exist`);
                 return res.status(400).json({
                     message: `You've sent videos which are not exist`
                 });
+            }
             let newPlan;
             if (this.planType === 'defaultPlan')
                 newPlan = new planDao({ name, instructions, videos, type });
             else
                 newPlan = new planDao({ name, instructions, videos, type, therapistID, patientID });
             response = await newPlan.save();
+            logger.info(`${this.planType} created successfully -- planID: ${response.id}`);
             return res.status(201).json(response);
         } catch (ex) {
-            console.error(`Error while trying to create new plan: ${ex.message}`);
+            logger.error(`Error while trying to create new plan: ${ex.message}`);
             return res.status(500).json({
                 message: `Internal server error`
             });
@@ -115,29 +133,36 @@ class AbstractPlan {
             instructions: Joi.string()
         });
         const { error, value } = schema.validate(req.body);
-        if (error)
+        if (error) {
+            logger.warn(`Bad schema of body parameter: ${JSON.stringify(req.body)}`);
             return res.status(400).json({
                 message: error.details[0].message
             });
+        }
         const { name, instructions } = value;
         try {
             const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
-            if (!planDocument)
+            if (!planDocument) {
+                logger.warn(`${this.planType} - ${req.params.id} not found`);
                 return res.status(404).json({
                     message: `Not found`
                 });
-            if (!name && !instructions)
+            }
+            if (!name && !instructions) {
+                logger.warn(`User have to provide at least one parameter to update`);
                 return res.status(400).json({
                     message: `You have to provide at least one parameter to update`
                 });
+            }
             if (name)
                 planDocument.name = name;
             if (instructions)
                 planDocument.instructions = instructions;
             const response = await planDocument.save();
+            logger.info(`${this.planType} was updated successfully`);
             return res.status(200).json(response);
         } catch (ex) {
-            console.error(`Error while trying to update plan ${req.params.id}: ${ex.message}`);
+            logger.error(`Error while trying to update plan ${req.params.id}: ${ex.message}`);
             return res.status(500).json({
                 message: `Internal server error`
             });
@@ -147,10 +172,11 @@ class AbstractPlan {
     removePlan = async (req, res) => {
         try {
             const response = await planDao.findOneAndRemove({ id: req.params.id, type: this.planType });
+            logger.info(`${this.planType} was removed successfully`);
             if (response) return res.status(200).json();
             return res.status(202).json();
         } catch (ex) {
-            console.error(`Error while trying to remove plan ${req.params.id}: ${ex.message}`);
+            logger.error(`Error while trying to remove plan ${req.params.id}: ${ex.message}`);
             return res.status(500).json({
                 message: `Internal server error`
             });
@@ -160,13 +186,16 @@ class AbstractPlan {
     getAllPlans = async (req, res) => {
         try {
             const response = await planDao.find({ type: this.planType });
-            if (response.length === 0)
+            if (response.length === 0) {
+                logger.warn(`No ${this.planType}s to return`);
                 return res.status(404).json({
                     message: `Not found`
                 });
+            }
+            logger.info(`All plans returned to the client`);
             return res.status(200).json(response);
         } catch (ex) {
-            console.error(`Error while trying to get all plans: ${ex.message}`);
+            logger.error(`Error while trying to get all plans: ${ex.message}`);
             return res.status(500).json({
                 message: `Internal server error`
             });
@@ -176,13 +205,16 @@ class AbstractPlan {
     getPlanByID = async (req, res) => {
         try {
             const response = await planDao.findOne({ id: req.params.id, type: this.planType });
-            if (!response)
+            if (!response) {
+                logger.warn(`${this.planType} - ${req.params.id} not found`);
                 return res.status(404).json({
                     message: `Not found`
                 });
+            }
+            logger.info(`${this.planType} - ${req.params.id} returned to the client`);
             return res.status(200).json(response);
         } catch (ex) {
-            console.error(`Error while trying to get plan ${req.params.id}: ${ex.message}`);
+            logger.error(`Error while trying to get plan ${req.params.id}: ${ex.message}`);
             return res.status(500).json({
                 message: `Internal server error`
             });
@@ -197,42 +229,53 @@ class AbstractPlan {
             }).min(1).required()
         });
         const { error, value } = schema.validate(req.body);
-        if (error)
+        if (error) {
+            logger.warn(`Bad schema of body parameter: ${JSON.stringify(req.body)}`);
             return res.status(400).json({
                 message: error.details[0].message
             });
+        }
         const { videos } = value;
         const videoIDs = [];
         for (let video of videos)
             videoIDs.push(video.videoID);
         try {
             const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
-            if (!planDocument)
+            if (!planDocument) {
+                logger.warn(`${this.planType} - ${req.params.id} not found`);
                 return res.status(404).json({
                     message: `Not found`
                 });
-            if (utils.checkForDuplicates(videos, 'videoID'))
+            }
+            if (utils.checkForDuplicates(videos, 'videoID')) {
+                logger.warn(`User has sent duplicated videos to update`);
                 return res.status(403).json({
                     message: `You've sent duplicated videos`
                 });
+            }
             const videosDocs = await videoDao.find({ id: { $in: videoIDs } });
-            if (videosDocs.length !== videos.length)
+            if (videosDocs.length !== videos.length) {
+                logger.warn(`User has sent videos to update which are not exist`);
                 return res.status(400).json({
                     message: `You've sent videos which are not exist`
                 });
+            }
             if (this.planType === 'rehabPlan') {
                 for (let index = 0; index < videos.length; index++)
                     videos[index] = { ...videos[index], done: false };
             }
             planDocument.videos = planDocument.videos.concat(videos);
-            if (utils.checkForDuplicates(planDocument.videos, 'videoID'))
+            if (utils.checkForDuplicates(planDocument.videos, 'videoID')) {
+                logger.warn(`User has sent videos to update which are already exist`);
                 return res.status(403).json({
                     message: `You've sent videos which are already exist`
                 });
+            }
             const response = await planDocument.save();
+            logger.info(`Videos were added successfully to ${this.planType} - ${req.params.id}`);
             return res.status(200).json(response);
         } catch (ex) {
-            console.error(`Error while trying to add videos to plan ${req.params.id}: ${ex.message}`);
+            logger.error(`Error while trying to add videos to plan ${req.params.id}: ${ex.message}`);
             return res.status(500).json({
                 message: `Internal server error`
             });
@@ -244,30 +287,37 @@ class AbstractPlan {
             videoIDs: Joi.array().items(Joi.string()).min(1).required()
         });
         const { error, value } = schema.validate(req.body);
-        if (error)
+        if (error) {
+            logger.warn(`Bad schema of body parameter: ${JSON.stringify(req.body)}`);
             return res.status(400).json({
                 message: error.details[0].message
             });
+        }
         const { videoIDs } = value;
         try {
             const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
-            if (!planDocument)
+            if (!planDocument) {
+                logger.warn(`${this.planType} - ${req.params.id} not found`);
                 return res.status(404).json({
                     message: `Not found`
                 });
+            }
             for (let videoID of videoIDs) {
                 const index = planDocument.videos.findIndex(item => item.videoID === videoID);
                 if (index !== -1)
                     planDocument.videos.splice(index, 1);
             }
-            if (planDocument.videos.length === 0)
+            if (planDocument.videos.length === 0) {
+                logger.warn(`User is trying to delete all videos from plan, in such case you have to remove the all plan`);
                 return res.status(400).json({
                     message: `You are trying to delete all videos from plan, in such case you have to remove the all plan`
                 });
+            }
             const response = await planDocument.save();
+            logger.info(`Videos were removed successfully from ${this.planType} ${req.params.id}`);
             return res.status(200).json(response);
         } catch (ex) {
-            console.error(`Error while trying to remove videos from plan ${req.params.id}: ${ex.message}`);
+            logger.error(`Error while trying to remove videos from plan ${req.params.id}: ${ex.message}`);
             return res.status(500).json({
                 message: `Internal server error`
             });
