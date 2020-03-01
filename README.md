@@ -29,6 +29,18 @@ Install all required packages
 npm install
 ```
 
+Install Redis NOSQL DB (Cache solution)
+
+```
+brew install redis (On mac) / For Windows use this guide https://redislabs.com/blog/redis-on-windows-8-1-and-previous-versions/
+```
+
+Run Redis server locally
+
+```
+redis-server (Inside Terminal / CMD)
+```
+
 Run
 
 ```
@@ -41,7 +53,7 @@ In order to implemet logout functionality in the front-end, you as a front-end d
 
 ## Postman Collection
 
-https://documenter.getpostman.com/view/5659041/SWTHbF9Z?version=latest
+[Postman Collection](https://documenter.getpostman.com/view/5659041/SWTHbF9Z?version=latest)
 
 ## Deployment
 
