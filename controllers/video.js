@@ -18,7 +18,7 @@ class Video {
         const { name, link } = value;
         const videoToCreate = new videoDao({ name, link });
         try {
-            const videoExist = await videoDao.findOne({ link: link });
+            const videoExist = await videoDao.findOne({ link }).select('-_id').select('-__v');
             if (videoExist) {
                 logger.warn(`Video with link ${link} already exist`);
                 return res.status(409).json({
@@ -52,7 +52,7 @@ class Video {
 
     getAllVideos = async (req, res) => {
         try {
-            const response = await videoDao.find();
+            const response = await videoDao.find().select('-_id').select('-__v');
             if (response.length === 0) {
                 logger.warn(`No videos to return`);
                 return res.status(404).json({
@@ -71,7 +71,7 @@ class Video {
 
     getVideoByID = async (req, res) => {
         try {
-            const response = await videoDao.findOne({ id: req.params.id });
+            const response = await videoDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
             if (!response) {
                 logger.warn(`Video ${req.params.id} was not found`);
                 return res.status(404).json({
@@ -108,7 +108,7 @@ class Video {
         }
         const { name, link } = value;
         try {
-            let videoDocument = await videoDao.findOne({ id: req.params.id });
+            let videoDocument = await videoDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
             if (!videoDocument) {
                 logger.warn(`Video ${req.params.id} was not found`);
                 return res.status(404).json({

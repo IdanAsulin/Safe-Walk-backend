@@ -29,14 +29,14 @@ class PatientGaitModel {
         }
         try {
             const { testID, sensor1RawData, sensor2RawData, sensor3RawData, sensor4RawData, sensor5RawData, sensor6RawData, sensor7RawData } = value;
-            const model = await patientGaitModelDao.findOne({ testID: testID });
+            const model = await patientGaitModelDao.findOne({ testID }).select('-_id').select('-__v');
             if (model) {
                 logger.warn(`testID ${testID} already updated with gait model`);
                 return res.status(404).json({
                     message: "testID already updated with gait model"
                 });
             }
-            const test = await testDao.findOne({ id: testID });
+            const test = await testDao.findOne({ id: testID }).select('-_id').select('-__v');
             if (!test) {
                 logger.warn(`testID ${testID} to be updated with the new model not found`);
                 return res.status(404).json({
@@ -58,7 +58,7 @@ class PatientGaitModel {
 
     async getModelByTestID(req, res) {
         try {
-            const response = await patientGaitModelDao.findOne({ testID: req.params.testID });
+            const response = await patientGaitModelDao.findOne({ testID: req.params.testID }).select('-_id').select('-__v');
             if (!response) {
                 logger.warn(`Model not found`);
                 return res.status(404).json({

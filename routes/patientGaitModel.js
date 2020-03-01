@@ -1,13 +1,12 @@
 const express = require('express');
 const PatientGaitModel = require('../controllers/patientGaitModel');
-const { authenticate, blockNotTherapists } = require('../middlewares');
+const { authenticate, blockNotTherapists, blockNotPatients } = require('../middlewares');
 
 const router = express.Router();
 router.use(authenticate);
-router.use(blockNotTherapists);
 const patientGaitModel = new PatientGaitModel();
 
-router.post('/', patientGaitModel.createModel);
-router.get('/:testID', patientGaitModel.getModelByTestID);
+router.post('/', blockNotPatients, patientGaitModel.createModel);
+router.get('/:testID', blockNotTherapists, patientGaitModel.getModelByTestID);
 
 module.exports = router;

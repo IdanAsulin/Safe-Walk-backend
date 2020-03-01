@@ -37,5 +37,15 @@ module.exports = {
             });
         }
         next();
+    },
+
+    blockNotPatients(req, res, next) {
+        if (req.user.type !== 'patient') {
+            logger.warn(`User ${req.user.id} which is not a patient was trying to access patient's endpoint`);
+            return res.status(401).json({
+                message: `Authorization denied`
+            });
+        }
+        next();
     }
 };

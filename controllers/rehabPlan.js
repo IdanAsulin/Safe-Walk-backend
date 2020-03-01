@@ -22,14 +22,14 @@ class RehabPlan extends AbstractPlan {
         }
         const { defaultPlanIDs } = value;
         try {
-            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
+            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType }).select('-_id').select('-__v');
             if (!planDocument) {
                 logger.warn(`Rehab plan ${req.params.id} not found`);
                 return res.status(404).json({
                     message: `Not found`
                 });
             }
-            const defaultPlans = await planDao.find({ id: { $in: defaultPlanIDs }, type: 'defaultPlan' });
+            const defaultPlans = await planDao.find({ id: { $in: defaultPlanIDs }, type: 'defaultPlan' }).select('-_id').select('-__v');
             if (defaultPlans.length === 0) {
                 logger.warn(`The default plans the user tried to add were not found`);
                 return res.status(404).json({
@@ -81,14 +81,14 @@ class RehabPlan extends AbstractPlan {
         }
         const { defaultPlanIDs } = value;
         try {
-            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
+            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType }).select('-_id').select('-__v');
             if (!planDocument) {
                 logger.warn(`Rehab plan ${req.params.id} not found`);
                 return res.status(404).json({
                     message: `Not found`
                 });
             }
-            const defaultPlans = await planDao.find({ id: { $in: defaultPlanIDs }, type: 'defaultPlan' });
+            const defaultPlans = await planDao.find({ id: { $in: defaultPlanIDs }, type: 'defaultPlan' }).select('-_id').select('-__v');
             if (defaultPlans.length === 0) {
                 logger.warn(`The default plans the user tried to remove were not found`);
                 return res.status(400).json({
@@ -109,6 +109,54 @@ class RehabPlan extends AbstractPlan {
             return res.status(200).json(response);
         } catch (ex) {
             logger.error(`Error while trying to remove default plans from plan ${req.params.id}: ${ex.message}`);
+            return res.status(500).json({
+                message: `Internal server error`
+            });
+        }
+    }
+
+    markVideoExecution = async (req, res) => {
+        const schema = Joi.object({
+            videoID: Joi.string().required()
+        });
+        const { error, value } = schema.validate(req.body);
+        if (error) {
+            logger.warn(`Bad schema of body parameter: ${JSON.stringify(req.body)}`);
+            return res.status(400).json({
+                message: error.details[0].message
+            });
+        }
+        const { videoID } = value;
+        try {
+            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType }).select('-_id').select('-__v');
+            if (!planDocument) {
+                logger.warn(`Rehab plan ${req.params.id} was not found`);
+                return res.status(404).json({
+                    message: `Not found`
+                });
+            }
+            let flag = false;
+            for (let index = 0; index < planDocument.videos.length; index++) {
+                if (planDocument.videos[index].videoID === videoID) {
+                    if (planDocument.videos[index].times > 0)
+                        planDocument.videos[index].times--;
+                    if (planDocument.videos[index].times === 0)
+                        planDocument.videos[index].done = true;
+                    flag = true;
+                    break;
+                }
+            }
+            if (!flag) {
+                logger.warn(`Video ${videoID} was not found in rehab plan ${req.params.id}`);
+                return res.status(404).json({
+                    message: `The video your'e trying to mark as execued was not found`
+                });
+            }
+            const response = await planDocument.save();
+            logger.warn(`Video ${videoID} mark as executed on rehab plan ${req.params.id}`);
+            return res.status(200).json(response);
+        } catch (ex) {
+            logger.error(`Error while trying to mark video ${videoID} on rehab plan ${req.params.id} as executed: ${ex.message}`);
             return res.status(500).json({
                 message: `Internal server error`
             });

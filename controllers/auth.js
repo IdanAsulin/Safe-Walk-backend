@@ -7,7 +7,7 @@ const patientDao = require('../dao/patient');
 const logger = require('../logger');
 
 class Auth {
-    async login(req, res) {
+    login = async (req, res) => {
         const schema = Joi.object({
             mail: Joi.string().email().required(),
             password: Joi.string().min(6).max(13).required()
@@ -44,7 +44,8 @@ class Auth {
             const payload = {
                 user: {
                     id: user.id,
-                    type: userType
+                    type: userType,
+                    details: user
                 }
             };
             jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.TOKEN_EXPIRES_IN }, (error, token) => {

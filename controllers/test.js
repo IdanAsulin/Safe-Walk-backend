@@ -18,7 +18,7 @@ class Test {
         const { patientID } = value;
         const newTest = new testDao({ patientID });
         try {
-            const patient = await patientDao.findOne({ id: patientID });
+            const patient = await patientDao.findOne({ id: patientID }).select('-_id').select('-__v');
             if (!patient) {
                 logger.warn(`Patient ${patientID} wa not found`);
                 return res.status(400).json({
@@ -38,7 +38,7 @@ class Test {
 
     getAllTests = async (req, res) => {
         try {
-            const response = await testDao.find();
+            const response = await testDao.find().select('-_id').select('-__v');
             if (response.length === 0) {
                 logger.warn(`No tests to return`);
                 return res.status(404).json({
@@ -57,7 +57,7 @@ class Test {
 
     getTestByID = async (req, res) => {
         try {
-            const response = await testDao.findOne({ id: req.params.id });
+            const response = await testDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
             if (!response) {
                 logger.warn(`Test ${req.params.id} was not found`);
                 return res.status(404).json({
@@ -76,14 +76,14 @@ class Test {
 
     getTestsByPatientID = async (req, res) => {
         try {
-            let response = await patientDao.findOne({ id: req.params.patientID });
+            let response = await patientDao.findOne({ id: req.params.patientID }).select('-_id').select('-__v');
             if (!response) {
                 logger.warn(`Patient ${req.params.patientID} is not exist`);
                 return res.status(400).json({
                     message: "The patient yoו have sent is not exist"
                 });
             }
-            response = await testDao.find({ patientID: req.params.patientID });
+            response = await testDao.find({ patientID: req.params.patientID }).select('-_id').select('-__v');
             if (response.length === 0) {
                 logger.warn(`Patient ${req.params.patientID} has no tests`);
                 return res.status(404).json({
@@ -120,7 +120,7 @@ class Test {
         }
         const { abnormality, detailedDiagnostic } = value;
         try {
-            let testDocument = await testDao.findOne({ id: req.params.id });
+            let testDocument = await testDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
             if (!testDocument) {
                 logger.warn(`Test ${req.params.id} was not found`);
                 return res.status(404).json({

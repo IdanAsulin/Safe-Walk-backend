@@ -9,6 +9,4 @@ const options = {
 
 mongoose.connect(config.DB_CONNECTION_URL, options)
     .then(() => logger.info(`Connected to the database`))
-    .catch(error => {
-        logger.error(`An error occured while trying to connect to the database: ${error.message}`);
-    });
+    .catch(error => logger.error(`An error occured while trying to connect to the database: ${error.message}`));

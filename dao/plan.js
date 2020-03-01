@@ -16,13 +16,9 @@ const planSchema = new Schema({
     videos: {
         type: [{
             videoID: { type: String, required: true },
-            times: { type: Number, default: 1, min: 1 },
+            times: { type: Number, default: 1, min: 0 },
             done: { type: Boolean }
-        }],
-        validate: {
-            validator: videos => videos.length > 0,
-            message: props => `${props.value} must contains at least 1 video`
-        }
+        }]
     },
     instructions: {
         type: String,

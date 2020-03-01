@@ -30,14 +30,14 @@ class Patient {
             const salt = await bcrypt.genSalt(10);
             password = await bcrypt.hash(password, salt);
             const newPatient = new patientDao({ name, mail, password, picture, phoneNumber, age, gender, sensorsKitID });
-            let response = await patientDao.findOne({ mail: mail });
+            let response = await patientDao.findOne({ mail }).select('-_id').select('-__v');
             if (response) {
                 logger.warn(`Patient with email address: ${mail} already exists`);
                 return res.status(409).json({
                     message: `Patient already exists`
                 });
             }
-            response = await sensorsKitDao.findOne({ id: sensorsKitID });
+            response = await sensorsKitDao.findOne({ id: sensorsKitID }).select('-_id').select('-__v');
             if (!response) {
                 logger.warn(`The sensors kit ${sensorsKitID} the user tried to update is not exist`);
                 return res.status(400).json({
@@ -81,7 +81,7 @@ class Patient {
             });
         }
         try {
-            const patientDocument = await patientDao.findOne({ id: req.params.id });
+            const patientDocument = await patientDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
             if (!patientDocument) {
                 logger.warn(`Patient ${req.params.id} was not found`);
                 return res.status(404).json({
@@ -94,8 +94,8 @@ class Patient {
             if (age) patientDocument.age = age;
             if (gender) patientDocument.gender = gender;
             if (sensorsKitID) {
-                const sensorsKit = await sensorsKitDao.findOne({ id: sensorsKitID });
-                const kitTaken = await patientDao.find({ sensorsKitID: sensorsKitID });
+                const sensorsKit = await sensorsKitDao.findOne({ id: sensorsKitID }).select('-_id').select('-__v');
+                const kitTaken = await patientDao.find({ sensorsKitID }).select('-_id').select('-__v');
                 if (!sensorsKit) {
                     logger.warn(`Sensor kit ${sensorsKitID} was not found`);
                     return res.status(400).json({
@@ -112,8 +112,8 @@ class Patient {
             }
             if (waitForPlan) patientDocument.waitForPlan = waitForPlan;
             if (rehabPlanID) {
-                const rehabPlan = await planDao.findOne({ id: rehabPlanID, type: 'rehabPlan' });
-                const planTaken = await patientDao.find({ rehabPlanID: rehabPlanID });
+                const rehabPlan = await planDao.findOne({ id: rehabPlanID, type: 'rehabPlan' }).select('-_id').select('-__v');
+                const planTaken = await patientDao.find({ rehabPlanID: rehabPlanID }).select('-_id').select('-__v');
                 if (!rehabPlan) {
                     logger.warn(`Rehab plan ${rehabPlan} is not exist`);
                     return res.status(400).json({
@@ -141,7 +141,7 @@ class Patient {
 
     getAllPatients = async (req, res) => {
         try {
-            const response = await patientDao.find();
+            const response = await patientDao.find().select('-_id').select('-__v');
             if (response.length === 0) {
                 logger.warn(`No patients to return`);
                 return res.status(404).json({
@@ -160,7 +160,7 @@ class Patient {
 
     getPatientByID = async (req, res) => {
         try {
-            const response = await patientDao.findOne({ id: req.params.id });
+            const response = await patientDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
             if (!response) {
                 logger.warn(`Patient (${req.params.id}) not found`);
                 return res.status(404).json({
@@ -190,14 +190,14 @@ class Patient {
         }
         const { testID } = value;
         try {
-            const patientDocument = await patientDao.findOne({ id: req.params.id });
+            const patientDocument = await patientDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
             if (!patientDocument) {
                 logger.warn(`Patient not found`);
                 return res.status(404).json({
                     message: `Not found`
                 });
             }
-            const testToAdd = await testDao.findOne({ id: testID });
+            const testToAdd = await testDao.findOne({ id: testID }).select('-_id').select('-__v');
             if (!testToAdd) {
                 logger.warn(`Test ${testID} is not exist`);
                 return res.status(400).json({

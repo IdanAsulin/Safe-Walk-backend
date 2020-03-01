@@ -1,19 +1,20 @@
 const express = require('express');
 const RehabPlan = require('../controllers/rehabPlan');
-const { authenticate, blockNotTherapists } = require('../middlewares');
+const { authenticate, blockNotTherapists, blockNotPatients } = require('../middlewares');
 
 const router = express.Router();
 router.use(authenticate);
 const rehabPlan = new RehabPlan();
 
-router.post('/', rehabPlan.createPlan);
-router.put('/:id', rehabPlan.editPlan);
-router.delete('/:id', rehabPlan.removePlan);
-router.put('/:id/videos', rehabPlan.addVideos);
-router.delete('/:id/videos', rehabPlan.removeVideos);
-router.get('/', rehabPlan.getAllPlans);
-router.get('/:id', blockNotTherapists, rehabPlan.getPlanByID);
-router.put('/:id/defaultPlan', rehabPlan.addDefaultPlans);
-router.delete('/:id/defaultPlan', rehabPlan.removeDefaultPlans);
+router.post('/', blockNotTherapists, rehabPlan.createPlan);
+router.put('/:id', blockNotTherapists, rehabPlan.editPlan);
+router.delete('/:id', blockNotTherapists, rehabPlan.removePlan);
+router.put('/:id/videos', blockNotTherapists, rehabPlan.addVideos);
+router.delete('/:id/videos', blockNotTherapists, rehabPlan.removeVideos);
+router.get('/', blockNotTherapists, rehabPlan.getAllPlans);
+router.get('/:id', rehabPlan.getPlanByID);
+router.put('/:id/defaultPlan', blockNotTherapists, rehabPlan.addDefaultPlans);
+router.delete('/:id/defaultPlan', blockNotTherapists, rehabPlan.removeDefaultPlans);
+router.post('/:id/markVideo', blockNotPatients, rehabPlan.markVideoExecution);
 
 module.exports = router;

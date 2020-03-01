@@ -19,7 +19,7 @@ class SensorsKit {
 
     getAllKits = async (req, res) => {
         try {
-            const response = await sensorsKitDao.find();
+            const response = await sensorsKitDao.find().select('-_id').select('-__v');
             if (response.length === 0) {
                 logger.warn(`No kits to return`);
                 return res.status(404).json({
@@ -38,7 +38,7 @@ class SensorsKit {
 
     getKitByID = async (req, res) => {
         try {
-            const response = await sensorsKitDao.findOne({ id: req.params.id });
+            const response = await sensorsKitDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
             if (!response) {
                 logger.warn(`Sensor kit ${req.params.id} not found`);
                 return res.status(404).json({
@@ -68,7 +68,7 @@ class SensorsKit {
             });
         }
         try {
-            const sensorKitDocument = await sensorsKitDao.findOne({ id: req.params.id });
+            const sensorKitDocument = await sensorsKitDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
             if (!sensorKitDocument) {
                 logger.warn(`Sensor kit ${req.params.id} not found`);
                 return res.status(404).json({
@@ -90,6 +90,7 @@ class SensorsKit {
 
     // TODO:: will be continued
     start = async (req, res) => {
+        const kitID = req.user.details.sensorsKitID;
         // send to each sensor, command to start scan for x seconds
 
         // getting the sensors output
@@ -99,7 +100,8 @@ class SensorsKit {
         // normalize data -- send to lambda
 
         // gets the relevant patient
-
+        const patientID = req.user.id;
+        
         // creates new test in the database
 
         // store in database - patientGaitModel collection

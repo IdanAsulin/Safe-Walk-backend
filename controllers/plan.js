@@ -58,21 +58,21 @@ class AbstractPlan {
         try {
             let response, defaultPlanVideos = [];
             if (this.planType === 'rehabPlan') {
-                response = await planDao.findOne({ patientID: patientID });
+                response = await planDao.findOne({ patientID }).select('-_id').select('-__v');
                 if (response) {
                     logger.warn(`Patient ${patientID} already have rehabilitation plan`);
                     return res.status(409).json({
                         message: `This patient already have rehabilitation plan`
                     });
                 }
-                response = await patientDao.findOne({ id: patientID });
+                response = await patientDao.findOne({ id: patientID }).select('-_id').select('-__v');
                 if (!response) {
                     logger.warn(`Patient ${patientID} is not exist`);
                     return res.status(400).json({
                         message: `The patient you have sent is not exist`
                     });
                 }
-                response = await therapistDao.findOne({ id: therapistID });
+                response = await therapistDao.findOne({ id: therapistID }).select('-_id').select('-__v');
                 if (!response) {
                     logger.warn(`Therapist ${therapistID} is not exist`);
                     return res.status(400).json({
@@ -80,7 +80,7 @@ class AbstractPlan {
                     });
                 }
                 if (defaultPlans) {
-                    response = await planDao.find({ id: { $in: defaultPlans } });
+                    response = await planDao.find({ id: { $in: defaultPlans } }).select('-_id').select('-__v');
                     if (response.length !== defaultPlans.length) {
                         logger.warn(`Some of the default plans the user sent are not exist`);
                         return res.status(400).json({
@@ -104,7 +104,7 @@ class AbstractPlan {
                     message: `You've sent duplicated videos`
                 });
             }
-            response = await videoDao.find({ id: { $in: videoIDs } });
+            response = await videoDao.find({ id: { $in: videoIDs } }).select('-_id').select('-__v');
             if (response.length !== videos.length) {
                 logger.warn(`User sent videos which are not exist`);
                 return res.status(400).json({
@@ -141,7 +141,7 @@ class AbstractPlan {
         }
         const { name, instructions } = value;
         try {
-            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
+            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType }).select('-_id').select('-__v');
             if (!planDocument) {
                 logger.warn(`${this.planType} - ${req.params.id} not found`);
                 return res.status(404).json({
@@ -185,7 +185,7 @@ class AbstractPlan {
 
     getAllPlans = async (req, res) => {
         try {
-            const response = await planDao.find({ type: this.planType });
+            const response = await planDao.find({ type: this.planType }).select('-_id').select('-__v');
             if (response.length === 0) {
                 logger.warn(`No ${this.planType}s to return`);
                 return res.status(404).json({
@@ -204,7 +204,7 @@ class AbstractPlan {
 
     getPlanByID = async (req, res) => {
         try {
-            const response = await planDao.findOne({ id: req.params.id, type: this.planType });
+            const response = await planDao.findOne({ id: req.params.id, type: this.planType }).select('-_id').select('-__v');
             if (!response) {
                 logger.warn(`${this.planType} - ${req.params.id} not found`);
                 return res.status(404).json({
@@ -240,7 +240,7 @@ class AbstractPlan {
         for (let video of videos)
             videoIDs.push(video.videoID);
         try {
-            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
+            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType }).select('-_id').select('-__v');
             if (!planDocument) {
                 logger.warn(`${this.planType} - ${req.params.id} not found`);
                 return res.status(404).json({
@@ -253,7 +253,7 @@ class AbstractPlan {
                     message: `You've sent duplicated videos`
                 });
             }
-            const videosDocs = await videoDao.find({ id: { $in: videoIDs } });
+            const videosDocs = await videoDao.find({ id: { $in: videoIDs } }).select('-_id').select('-__v');
             if (videosDocs.length !== videos.length) {
                 logger.warn(`User has sent videos to update which are not exist`);
                 return res.status(400).json({
@@ -295,7 +295,7 @@ class AbstractPlan {
         }
         const { videoIDs } = value;
         try {
-            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
+            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType }).select('-_id').select('-__v');
             if (!planDocument) {
                 logger.warn(`${this.planType} - ${req.params.id} not found`);
                 return res.status(404).json({
