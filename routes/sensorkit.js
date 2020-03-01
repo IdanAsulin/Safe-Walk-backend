@@ -9,6 +9,6 @@ router.post('/', [authenticate, blockNotTherapists], sensorsKit.createKit);
 router.get('/', [authenticate, blockNotTherapists], sensorsKit.getAllKits);
 router.get('/:id', authenticate, sensorsKit.getKitByID);
 router.post('/:id/start', authenticate, sensorsKit.start);
-router.put('/:id/ips', sensorsKit.updateIPs);
+router.put('/:id/ips', authenticate, sensorsKit.updateIPs);
 
 module.exports = router;
