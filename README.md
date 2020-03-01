@@ -50,7 +50,7 @@ node index.js
 
 ### Notes
 
-In order to implemet logout functionality in the front-end, you as a front-end developer will be responsible to remove the token from the application domain cookies. Cokkie name: x-auth-token
+In order to implemet logout functionality in the front-end, you as a front-end developer will be responsible to remove the token from the application domain cookies. Cookie name: x-auth-token
 
 ## Postman Collection
 
@@ -64,9 +64,11 @@ Add additional notes about how to deploy this on a live system
 
 * [Node.js](http://www.dropwizard.io/1.0.2/docs/) - Programming language
 * [NPM](https://www.npmjs.com/) - Dependency Management
+* [Redis](https://redis.io) - Cache mechanism
 * [Express](https://expressjs.com/) - Web framework
 * [Mongo DB](https://www.mongodb.com/) - Database
 * [Winston](https://github.com/winstonjs/winston) - Logs management
+* [JWT](https://www.npmjs.com/package/jsonwebtoken) - Token based authentication management
 
 ## Authors
 
