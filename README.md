@@ -32,8 +32,9 @@ npm install
 Install Redis NOSQL DB (Cache solution)
 
 ```
-brew install redis (On mac) / For Windows use this guide https://redislabs.com/blog/redis-on-windows-8-1-and-previous-versions/
+brew install redis (On mac)
 ```
+[Windows guide](https://redislabs.com/blog/redis-on-windows-8-1-and-previous-versions)
 
 Run Redis server locally
 
