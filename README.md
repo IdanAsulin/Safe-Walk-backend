@@ -14,13 +14,14 @@ Create a new file called config.json with the following content
 
 ```
 {
-    "DB_CONNECTION_URL": "mongodb://<user>:<password>@ds215229.mlab.com:15229/<DB name>"
+    "DB_CONNECTION_URL": "mongodb://<user>:<password>@ds215229.mlab.com:15229/<DB name>",
+    "JWT_SECRET": "YOUR_SECRET_KEY",
+    "TOKEN_EXPIRES_IN": 36000,
+    "HTTPS_ENV": false
 }
 ```
 
 ### Installing
-
-A step by step series of examples that tell you how to get a development env running
 
 Install all required packages
 
@@ -33,6 +34,10 @@ Run
 ```
 node index.js
 ```
+
+### Installing
+
+In order to implemet logout functionality in the front-end, you as a front-end developer will be responsible to remove the token from the application domain cookies. Cokkie name: x-auth-token
 
 ## Postman Collection
 
