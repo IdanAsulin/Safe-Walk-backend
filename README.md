@@ -35,7 +35,7 @@ Run
 node index.js
 ```
 
-### Installing
+### Notes
 
 In order to implemet logout functionality in the front-end, you as a front-end developer will be responsible to remove the token from the application domain cookies. Cokkie name: x-auth-token
 
