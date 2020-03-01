@@ -1,12 +1,14 @@
 const express = require('express');
 const Patient = require('../controllers/patient');
+const { authenticate, blockNotTherapists } = require('../middlewares');
 
 const router = express.Router();
+router.use(authenticate);
 const patient = new Patient();
 
-router.post('/', patient.createPatient);
-router.put('/:id', patient.editPatient);
-router.get('/', patient.getAllPatients);
+router.post('/', blockNotTherapists, patient.createPatient);
+router.put('/:id', blockNotTherapists, patient.editPatient);
+router.get('/', blockNotTherapists, patient.getAllPatients);
 router.get('/:id', patient.getPatientByID);
 router.put('/:id/test', patient.addTest);
 

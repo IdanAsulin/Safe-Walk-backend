@@ -1,7 +1,10 @@
 const express = require('express');
 const DefaultPlan = require('../controllers/defaultPlan');
+const { authenticate, blockNotTherapists } = require('../middlewares');
 
 const router = express.Router();
+router.use(authenticate);
+router.use(blockNotTherapists);
 const defaultPlan = new DefaultPlan();
 
 router.post('/', defaultPlan.createPlan);

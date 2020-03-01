@@ -1,7 +1,10 @@
 const express = require('express');
 const Video = require('../controllers/video');
+const { authenticate, blockNotTherapists } = require('../middlewares');
 
 const router = express.Router();
+router.use(authenticate);
+router.use(blockNotTherapists);
 const video = new Video();
 
 router.post('/', video.createVideo);

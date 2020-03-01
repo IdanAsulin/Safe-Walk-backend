@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const patientDao = require('../dao/patient');
 const sensorsKitDao = require('../dao/sensorsKit');
 const planDao = require('../dao/plan');
@@ -13,7 +13,7 @@ class Patient {
             mail: Joi.string().email().required(),
             password: Joi.string().min(6).max(13).required(),
             picture: Joi.string().uri().required(),
-            phoneNumber: Joi.string().min(10).max(13).required(),
+            phoneNumber: Joi.string().min(10).required(),
             age: Joi.number().min(0).max(120).required(),
             gender: Joi.string().valid('male', 'female').required(),
             sensorsKitID: Joi.string().required()
@@ -26,10 +26,10 @@ class Patient {
             });
         }
         let { name, mail, password, picture, phoneNumber, age, gender, sensorsKitID } = value;
-        const hashedPassword = crypto.createHash('sha256').update(password).digest('base64');
-        password = hashedPassword;
-        const newPatient = new patientDao({ name, mail, password, picture, phoneNumber, age, gender, sensorsKitID });
         try {
+            const salt = await bcrypt.genSalt(10);
+            password = await bcrypt.hash(password, salt);
+            const newPatient = new patientDao({ name, mail, password, picture, phoneNumber, age, gender, sensorsKitID });
             let response = await patientDao.findOne({ mail: mail });
             if (response) {
                 logger.warn(`Patient with email address: ${mail} already exists`);
@@ -58,7 +58,6 @@ class Patient {
     editPatient = async (req, res) => {
         const schema = Joi.object({
             name: Joi.string(),
-            password: Joi.string().min(6).max(13),
             picture: Joi.string().uri(),
             phoneNumber: Joi.string().min(10).max(13),
             age: Joi.number().min(0).max(120),
@@ -74,16 +73,12 @@ class Patient {
                 message: error.details[0].message
             });
         }
-        let { name, password, picture, phoneNumber, age, gender, sensorsKitID, waitForPlan, rehabPlanID } = value;
-        if (!name && !password && !picture && !phoneNumber && !age && !gender && !sensorsKitID && !waitForPlan && !rehabPlanID) {
+        let { name, picture, phoneNumber, age, gender, sensorsKitID, waitForPlan, rehabPlanID } = value;
+        if (!name && !picture && !phoneNumber && !age && !gender && !sensorsKitID && !waitForPlan && !rehabPlanID) {
             logger.warn(`User did not provide any parameter to update`);
             return res.status(400).json({
                 message: `You must provide at least one parameter to update`
             });
-        }
-        if (password) {
-            const hashedPassword = crypto.createHash('sha256').update(password).digest('base64');
-            password = hashedPassword;
         }
         try {
             const patientDocument = await patientDao.findOne({ id: req.params.id });
@@ -94,7 +89,6 @@ class Patient {
                 });
             }
             if (name) patientDocument.name = name;
-            if (password) patientDocument.password = password;
             if (picture) patientDocument.picture = picture;
             if (phoneNumber) patientDocument.phoneNumber = phoneNumber;
             if (age) patientDocument.age = age;

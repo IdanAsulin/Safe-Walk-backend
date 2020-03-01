@@ -1,14 +1,16 @@
 const Joi = require('joi');
-const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const therapistDao = require('../dao/therapist');
 const logger = require('../logger');
+const config = require('../config.json');
 
 class Therapist {
     createTherapist = async (req, res) => {
         const schema = Joi.object({
             name: Joi.string().required(),
             mail: Joi.string().email().required(),
-            password: Joi.string().min(6).max(13).required(),
+            password: Joi.string().min(6).required(),
             picture: Joi.string().uri().required()
         });
         const { error, value } = schema.validate(req.body);
@@ -19,9 +21,10 @@ class Therapist {
             });
         }
         let { name, mail, password, picture } = value;
-        password = crypto.createHash('sha256').update(password).digest('base64');
-        const newTherapist = new therapistDao({ name, mail, password, picture });
         try {
+            const salt = await bcrypt.genSalt(10);
+            password = await bcrypt.hash(password, salt);
+            const newTherapist = new therapistDao({ name, mail, password, picture });
             let response = await therapistDao.findOne({ mail: mail });
             if (response) {
                 logger.warn(`Therapist with email ${mail} is already exist`);
@@ -30,8 +33,26 @@ class Therapist {
                 });
             }
             response = await newTherapist.save();
-            logger.info(`A new therapist was created successfully -- therapistID: ${response.id}`);
-            return res.status(201).json(response);
+            const payload = {
+                user: {
+                    id: response.id,
+                    type: 'therapist'
+                }
+            };
+            jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.TOKEN_EXPIRES_IN }, (error, token) => {
+                if (error) {
+                    logger.error(`Error while trying to create new therapist: ${error.message}`);
+                    return res.status(500).json({
+                        message: `Internal server error`
+                    });
+                }
+                logger.info(`A new therapist was created successfully -- therapistID: ${response.id}`);
+                return res.cookie('x-auth-token', token, {
+                    expires: new Date(Date.now() + config.TOKEN_EXPIRES_IN),
+                    secure: config.HTTPS_ENV,
+                    httpOnly: true,
+                }).status(201).json({ token });
+            });
         } catch (ex) {
             logger.error(`Error while trying to create new therapist: ${ex.message}`);
             return res.status(500).json({

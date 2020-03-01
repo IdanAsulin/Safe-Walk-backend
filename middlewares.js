@@ -1,7 +1,41 @@
+const jwt = require('jsonwebtoken');
+const config = require('./config.json');
+const logger = require('./logger');
+
 module.exports = {
     validateRequestBody(err, req, res, next) {
         if (err instanceof SyntaxError && err.status === 400 && 'body' in err)
             return res.status(400).json({ message: `Request body is an invalid JSON` });
+        next();
+    },
+
+    authenticate(req, res, next) {
+        const token = req.cookies['x-auth-token'] || '';
+        if (!token) {
+            logger.warn(`User did not send token`);
+            return res.status(401).json({
+                message: `Authorization denied`
+            });
+        }
+        try {
+            const decoded = jwt.verify(token, config.JWT_SECRET);
+            req.user = decoded.user;
+            next();
+        } catch (ex) {
+            logger.warn(`User has sent an invalid token`);
+            return res.status(401).json({
+                message: `Authorization denied`
+            });
+        }
+    },
+
+    blockNotTherapists(req, res, next) {
+        if (req.user.type !== 'therapist') {
+            logger.warn(`User ${req.user.id} which is not a therapist was trying to access therapist's endpoint`);
+            return res.status(401).json({
+                message: `Authorization denied`
+            });
+        }
         next();
     }
 };
