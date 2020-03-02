@@ -1,6 +1,6 @@
 const express = require('express');
 const Patient = require('../controllers/patient');
-const { authenticate, blockNotTherapists, blockNotPatients } = require('../middlewares');
+const { authenticate, blockNotTherapists, blockNotPatients, checkInCache } = require('../middlewares');
 
 const router = express.Router();
 router.use(authenticate);
@@ -8,8 +8,8 @@ const patient = new Patient();
 
 router.post('/', blockNotTherapists, patient.createPatient);
 router.put('/:id', blockNotTherapists, patient.editPatient);
-router.get('/', blockNotTherapists, patient.getAllPatients);
-router.get('/:id', patient.getPatientByID);
-router.put('/:id/test', blockNotPatients,  patient.addTest);
+router.get('/', [blockNotTherapists, (req, res, next) => checkInCache(req, res, next, 'all_patients')], patient.getAllPatients);
+router.get('/:id', (req, res, next) => checkInCache(req, res, next, `patient_${req.params.id}`), patient.getPatientByID);
+router.put('/:id/test', blockNotPatients, patient.addTest);
 
 module.exports = router;

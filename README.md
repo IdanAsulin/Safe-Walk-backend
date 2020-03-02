@@ -29,14 +29,14 @@ Install all required packages
 npm install
 ```
 
-Install Redis NOSQL DB (Cache solution)
+Install Redis on your local machine (Cache solution)
 
 ```
 brew install redis (On mac)
 ```
 [Windows guide](https://redislabs.com/blog/redis-on-windows-8-1-and-previous-versions)
 
-Run Redis server locally
+Run Redis server locally and leave the terminal window open
 
 ```
 redis-server (Inside Terminal / CMD)
@@ -45,7 +45,15 @@ redis-server (Inside Terminal / CMD)
 Run
 
 ```
-node index.js
+npm start
+```
+
+### Special scripts
+
+Flush all DBs inside REDIS
+
+```
+npm run flush-redis
 ```
 
 ### Notes

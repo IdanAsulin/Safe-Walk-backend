@@ -1,6 +1,9 @@
 const Joi = require('joi');
+const redis = require('../redisConnection');
 const videoDao = require('../dao/video');
 const logger = require('../logger');
+const config = require('../config.json');
+const { getFromRedis } = require('../utils');
 
 class Video {
     createVideo = async (req, res) => {
@@ -18,7 +21,7 @@ class Video {
         const { name, link } = value;
         const videoToCreate = new videoDao({ name, link });
         try {
-            const videoExist = await videoDao.findOne({ link }).select('-_id').select('-__v');
+            const videoExist = await videoDao.findOne({ link });
             if (videoExist) {
                 logger.warn(`Video with link ${link} already exist`);
                 return res.status(409).json({
@@ -26,6 +29,8 @@ class Video {
                 });
             }
             const addedVideo = await videoToCreate.save();
+            redis.setex(`video_${addedVideo.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(addedVideo));
+            redis.del(`all_videos`);
             logger.info(`Video was created succesfully - videoID: ${addedVideo.id}`);
             return res.status(201).json(addedVideo);
         } catch (err) {
@@ -39,6 +44,8 @@ class Video {
     removeVideo = async (req, res) => {
         try {
             const response = await videoDao.findOneAndRemove({ id: req.params.id });
+            redis.del(`video_${req.params.id}`);
+            redis.del(`all_videos`);
             logger.info(`Video ${req.params.id} was successfully removed`);
             if (response) return res.status(200).json();
             return res.status(202).json();
@@ -53,6 +60,7 @@ class Video {
     getAllVideos = async (req, res) => {
         try {
             const response = await videoDao.find().select('-_id').select('-__v');
+            redis.setex(`all_videos`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (response.length === 0) {
                 logger.warn(`No videos to return`);
                 return res.status(404).json({
@@ -72,6 +80,7 @@ class Video {
     getVideoByID = async (req, res) => {
         try {
             const response = await videoDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
+            redis.setex(`video_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (!response) {
                 logger.warn(`Video ${req.params.id} was not found`);
                 return res.status(404).json({
@@ -108,7 +117,7 @@ class Video {
         }
         const { name, link } = value;
         try {
-            let videoDocument = await videoDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
+            let videoDocument = await videoDao.findOne({ id: req.params.id });
             if (!videoDocument) {
                 logger.warn(`Video ${req.params.id} was not found`);
                 return res.status(404).json({
@@ -120,6 +129,8 @@ class Video {
             if (link)
                 videoDocument.link = link;
             const response = await videoDocument.save();
+            redis.setex(`video_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.del(`all_videos`);
             logger.info(`Video (${req.params.id}) was updated successfully`);
             return res.status(200).json(response);
         } catch (ex) {

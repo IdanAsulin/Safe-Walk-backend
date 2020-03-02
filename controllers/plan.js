@@ -1,10 +1,13 @@
 const Joi = require('joi');
+const redis = require('../redisConnection');
 const planDao = require('../dao/plan');
 const videoDao = require('../dao/video');
 const patientDao = require('../dao/patient');
 const therapistDao = require('../dao/therapist');
 const utils = require('../utils');
 const logger = require('../logger');
+const config = require('../config.json');
+const { getFromRedis } = require('../utils');
 
 class AbstractPlan {
     constructor(planType) {
@@ -58,21 +61,31 @@ class AbstractPlan {
         try {
             let response, defaultPlanVideos = [];
             if (this.planType === 'rehabPlan') {
-                response = await planDao.findOne({ patientID }).select('-_id').select('-__v');
+                response = await planDao.findOne({ patientID });
                 if (response) {
                     logger.warn(`Patient ${patientID} already have rehabilitation plan`);
                     return res.status(409).json({
                         message: `This patient already have rehabilitation plan`
                     });
                 }
-                response = await patientDao.findOne({ id: patientID }).select('-_id').select('-__v');
+                response = await getFromRedis(`patient_${patientID}`);
+                if (!response.found) {
+                    response = await patientDao.findOne({ id: patientID });
+                    redis.setex(`patient_${patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+                }
+                else response = response.data;
                 if (!response) {
                     logger.warn(`Patient ${patientID} is not exist`);
                     return res.status(400).json({
                         message: `The patient you have sent is not exist`
                     });
                 }
-                response = await therapistDao.findOne({ id: therapistID }).select('-_id').select('-__v');
+                let response = await getFromRedis(`therapist_${therapistID}`);
+                if (!response.found) {
+                    response = await therapistDao.findOne({ id: therapistID });
+                    redis.setex(`therapist_${therapistID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+                }
+                else response = response.data;
                 if (!response) {
                     logger.warn(`Therapist ${therapistID} is not exist`);
                     return res.status(400).json({
@@ -80,7 +93,7 @@ class AbstractPlan {
                     });
                 }
                 if (defaultPlans) {
-                    response = await planDao.find({ id: { $in: defaultPlans } }).select('-_id').select('-__v');
+                    response = await planDao.find({ id: { $in: defaultPlans } });
                     if (response.length !== defaultPlans.length) {
                         logger.warn(`Some of the default plans the user sent are not exist`);
                         return res.status(400).json({
@@ -104,7 +117,7 @@ class AbstractPlan {
                     message: `You've sent duplicated videos`
                 });
             }
-            response = await videoDao.find({ id: { $in: videoIDs } }).select('-_id').select('-__v');
+            response = await videoDao.find({ id: { $in: videoIDs } });
             if (response.length !== videos.length) {
                 logger.warn(`User sent videos which are not exist`);
                 return res.status(400).json({
@@ -117,6 +130,8 @@ class AbstractPlan {
             else
                 newPlan = new planDao({ name, instructions, videos, type, therapistID, patientID });
             response = await newPlan.save();
+            redis.setex(`${this.planType}_${response.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.del(`all_${this.planType}`);
             logger.info(`${this.planType} created successfully -- planID: ${response.id}`);
             return res.status(201).json(response);
         } catch (ex) {
@@ -141,7 +156,7 @@ class AbstractPlan {
         }
         const { name, instructions } = value;
         try {
-            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType }).select('-_id').select('-__v');
+            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument) {
                 logger.warn(`${this.planType} - ${req.params.id} not found`);
                 return res.status(404).json({
@@ -159,6 +174,8 @@ class AbstractPlan {
             if (instructions)
                 planDocument.instructions = instructions;
             const response = await planDocument.save();
+            redis.setex(`${this.planType}_${planDocument.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.del(`all_${this.planType}`);
             logger.info(`${this.planType} was updated successfully`);
             return res.status(200).json(response);
         } catch (ex) {
@@ -172,6 +189,8 @@ class AbstractPlan {
     removePlan = async (req, res) => {
         try {
             const response = await planDao.findOneAndRemove({ id: req.params.id, type: this.planType });
+            redis.del(`${this.planType}_${req.params.id}`);
+            redis.del(`all_${this.planType}`);
             logger.info(`${this.planType} was removed successfully`);
             if (response) return res.status(200).json();
             return res.status(202).json();
@@ -186,6 +205,7 @@ class AbstractPlan {
     getAllPlans = async (req, res) => {
         try {
             const response = await planDao.find({ type: this.planType }).select('-_id').select('-__v');
+            redis.setex(`all_${this.planType}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (response.length === 0) {
                 logger.warn(`No ${this.planType}s to return`);
                 return res.status(404).json({
@@ -205,6 +225,7 @@ class AbstractPlan {
     getPlanByID = async (req, res) => {
         try {
             const response = await planDao.findOne({ id: req.params.id, type: this.planType }).select('-_id').select('-__v');
+            redis.setex(`${this.planType}_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (!response) {
                 logger.warn(`${this.planType} - ${req.params.id} not found`);
                 return res.status(404).json({
@@ -240,7 +261,7 @@ class AbstractPlan {
         for (let video of videos)
             videoIDs.push(video.videoID);
         try {
-            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType }).select('-_id').select('-__v');
+            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument) {
                 logger.warn(`${this.planType} - ${req.params.id} not found`);
                 return res.status(404).json({
@@ -253,7 +274,7 @@ class AbstractPlan {
                     message: `You've sent duplicated videos`
                 });
             }
-            const videosDocs = await videoDao.find({ id: { $in: videoIDs } }).select('-_id').select('-__v');
+            const videosDocs = await videoDao.find({ id: { $in: videoIDs } });
             if (videosDocs.length !== videos.length) {
                 logger.warn(`User has sent videos to update which are not exist`);
                 return res.status(400).json({
@@ -272,6 +293,8 @@ class AbstractPlan {
                 });
             }
             const response = await planDocument.save();
+            redis.setex(`${this.planType}_${planDocument.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.del(`all_${this.planType}`);
             logger.info(`Videos were added successfully to ${this.planType} - ${req.params.id}`);
             return res.status(200).json(response);
         } catch (ex) {
@@ -295,7 +318,7 @@ class AbstractPlan {
         }
         const { videoIDs } = value;
         try {
-            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType }).select('-_id').select('-__v');
+            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument) {
                 logger.warn(`${this.planType} - ${req.params.id} not found`);
                 return res.status(404).json({
@@ -314,6 +337,8 @@ class AbstractPlan {
                 });
             }
             const response = await planDocument.save();
+            redis.setex(`${this.planType}_${planDocument.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.del(`all_${this.planType}`);
             logger.info(`Videos were removed successfully from ${this.planType} ${req.params.id}`);
             return res.status(200).json(response);
         } catch (ex) {
