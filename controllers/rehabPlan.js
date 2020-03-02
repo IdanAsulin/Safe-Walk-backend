@@ -1,8 +1,10 @@
 const Joi = require('joi');
+const redis = require('../redisConnection');
 const AbstractPlan = require('./plan');
 const planDao = require('../dao/plan');
 const utils = require('../utils');
 const logger = require('../logger');
+const config = require('../config.json');
 
 class RehabPlan extends AbstractPlan {
     constructor() {
@@ -22,14 +24,14 @@ class RehabPlan extends AbstractPlan {
         }
         const { defaultPlanIDs } = value;
         try {
-            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType }).select('-_id').select('-__v');
+            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument) {
                 logger.warn(`Rehab plan ${req.params.id} not found`);
                 return res.status(404).json({
                     message: `Not found`
                 });
             }
-            const defaultPlans = await planDao.find({ id: { $in: defaultPlanIDs }, type: 'defaultPlan' }).select('-_id').select('-__v');
+            const defaultPlans = await planDao.find({ id: { $in: defaultPlanIDs }, type: 'defaultPlan' });
             if (defaultPlans.length === 0) {
                 logger.warn(`The default plans the user tried to add were not found`);
                 return res.status(404).json({
@@ -58,6 +60,8 @@ class RehabPlan extends AbstractPlan {
                 });
             }
             const response = await planDocument.save();
+            redis.setex(`${this.planType}_${planDocument.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.del(`all_${this.planType}`);
             logger.warn(`Default plans were added successfully to plan ${req.params.id}`);
             return res.status(200).json(response);
         } catch (ex) {
@@ -81,14 +85,14 @@ class RehabPlan extends AbstractPlan {
         }
         const { defaultPlanIDs } = value;
         try {
-            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType }).select('-_id').select('-__v');
+            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument) {
                 logger.warn(`Rehab plan ${req.params.id} not found`);
                 return res.status(404).json({
                     message: `Not found`
                 });
             }
-            const defaultPlans = await planDao.find({ id: { $in: defaultPlanIDs }, type: 'defaultPlan' }).select('-_id').select('-__v');
+            const defaultPlans = await planDao.find({ id: { $in: defaultPlanIDs }, type: 'defaultPlan' });
             if (defaultPlans.length === 0) {
                 logger.warn(`The default plans the user tried to remove were not found`);
                 return res.status(400).json({
@@ -105,6 +109,8 @@ class RehabPlan extends AbstractPlan {
                     planDocument.videos.splice(index, 1);
             }
             const response = await planDocument.save();
+            redis.setex(`${this.planType}_${planDocument.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.del(`all_${this.planType}`);
             logger.warn(`Default plans were removed from plan ${req.params.id}`);
             return res.status(200).json(response);
         } catch (ex) {
@@ -128,7 +134,7 @@ class RehabPlan extends AbstractPlan {
         }
         const { videoID } = value;
         try {
-            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType }).select('-_id').select('-__v');
+            const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument) {
                 logger.warn(`Rehab plan ${req.params.id} was not found`);
                 return res.status(404).json({
@@ -153,6 +159,8 @@ class RehabPlan extends AbstractPlan {
                 });
             }
             const response = await planDocument.save();
+            redis.setex(`${this.planType}_${planDocument.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.del(`all_${this.planType}`);
             logger.warn(`Video ${videoID} mark as executed on rehab plan ${req.params.id}`);
             return res.status(200).json(response);
         } catch (ex) {

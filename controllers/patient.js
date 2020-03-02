@@ -1,10 +1,13 @@
 const Joi = require('joi');
 const bcrypt = require('bcryptjs');
+const redis = require('../redisConnection');
 const patientDao = require('../dao/patient');
 const sensorsKitDao = require('../dao/sensorsKit');
 const planDao = require('../dao/plan');
 const testDao = require('../dao/test');
 const logger = require('../logger');
+const config = require('../config.json');
+const { getFromRedis } = require('../utils');
 
 class Patient {
     createPatient = async (req, res) => {
@@ -30,14 +33,19 @@ class Patient {
             const salt = await bcrypt.genSalt(10);
             password = await bcrypt.hash(password, salt);
             const newPatient = new patientDao({ name, mail, password, picture, phoneNumber, age, gender, sensorsKitID });
-            let response = await patientDao.findOne({ mail }).select('-_id').select('-__v');
+            let response = await patientDao.findOne({ mail });
             if (response) {
                 logger.warn(`Patient with email address: ${mail} already exists`);
                 return res.status(409).json({
                     message: `Patient already exists`
                 });
             }
-            response = await sensorsKitDao.findOne({ id: sensorsKitID }).select('-_id').select('-__v');
+            response = await getFromRedis(`sensorsKit_${sensorsKitID}`);
+            if (!response.found) {
+                response = await sensorsKitDao.findOne({ id: sensorsKitID });
+                redis.setex(`sensorsKit_${sensorsKitID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            }
+            else response = response.data;
             if (!response) {
                 logger.warn(`The sensors kit ${sensorsKitID} the user tried to update is not exist`);
                 return res.status(400).json({
@@ -45,6 +53,8 @@ class Patient {
                 });
             }
             response = await newPatient.save();
+            redis.setex(`patient_${response.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.del(`all_patients`);
             logger.info(`A new patient was created successfully -- patientID: ${response.id}`);
             return res.status(201).json(response);
         } catch (ex) {
@@ -81,7 +91,8 @@ class Patient {
             });
         }
         try {
-            const patientDocument = await patientDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
+            const patientDocument = await patientDao.findOne({ id: req.params.id });
+            redis.setex(`patient_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (!patientDocument) {
                 logger.warn(`Patient ${req.params.id} was not found`);
                 return res.status(404).json({
@@ -94,8 +105,13 @@ class Patient {
             if (age) patientDocument.age = age;
             if (gender) patientDocument.gender = gender;
             if (sensorsKitID) {
-                const sensorsKit = await sensorsKitDao.findOne({ id: sensorsKitID }).select('-_id').select('-__v');
-                const kitTaken = await patientDao.find({ sensorsKitID }).select('-_id').select('-__v');
+                let sensorsKit = await getFromRedis(`sensorsKit_${sensorsKitID}`);
+                if (!sensorsKit.found) {
+                    sensorsKit = await sensorsKitDao.findOne({ id: sensorsKitID });
+                    redis.setex(`sensorsKit_${sensorsKitID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+                }
+                else sensorsKit = sensorsKit.data;
+                const kitTaken = await patientDao.find({ sensorsKitID });
                 if (!sensorsKit) {
                     logger.warn(`Sensor kit ${sensorsKitID} was not found`);
                     return res.status(400).json({
@@ -112,8 +128,13 @@ class Patient {
             }
             if (waitForPlan) patientDocument.waitForPlan = waitForPlan;
             if (rehabPlanID) {
-                const rehabPlan = await planDao.findOne({ id: rehabPlanID, type: 'rehabPlan' }).select('-_id').select('-__v');
-                const planTaken = await patientDao.find({ rehabPlanID: rehabPlanID }).select('-_id').select('-__v');
+                let rehabPlan = await getFromRedis(`rehabPlan_${rehabPlanID}`);
+                if (!rehabPlan.found) {
+                    rehabPlan = await planDao.findOne({ id: rehabPlanID, type: 'rehabPlan' });
+                    redis.setex(`rehabPlan_${rehabPlanID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+                }
+                else rehabPlan = rehabPlan.data;
+                const planTaken = await patientDao.find({ rehabPlanID: rehabPlanID });
                 if (!rehabPlan) {
                     logger.warn(`Rehab plan ${rehabPlan} is not exist`);
                     return res.status(400).json({
@@ -129,6 +150,8 @@ class Patient {
                 patientDocument.rehabPlanID = rehabPlanID;
             }
             const response = await patientDocument.save();
+            redis.setex(`patient_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.del(`all_patients`);
             logger.info(`Patient (${req.params.id}) was updated successfully`);
             return res.status(200).json(response);
         } catch (ex) {
@@ -142,6 +165,7 @@ class Patient {
     getAllPatients = async (req, res) => {
         try {
             const response = await patientDao.find().select('-_id').select('-__v');
+            redis.setex('all_patients', config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (response.length === 0) {
                 logger.warn(`No patients to return`);
                 return res.status(404).json({
@@ -161,6 +185,7 @@ class Patient {
     getPatientByID = async (req, res) => {
         try {
             const response = await patientDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
+            redis.setex(`patient_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (!response) {
                 logger.warn(`Patient (${req.params.id}) not found`);
                 return res.status(404).json({
@@ -190,14 +215,20 @@ class Patient {
         }
         const { testID } = value;
         try {
-            const patientDocument = await patientDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
+            patientDocument = await patientDao.findOne({ id: req.params.id });
+            redis.setex(`patient_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (!patientDocument) {
                 logger.warn(`Patient not found`);
                 return res.status(404).json({
                     message: `Not found`
                 });
             }
-            const testToAdd = await testDao.findOne({ id: testID }).select('-_id').select('-__v');
+            let testToAdd = await getFromRedis(`test_${testID}`);
+            if (!testToAdd.found) {
+                testToAdd = await testDao.findOne({ id: testID });
+                redis.setex(`test_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            }
+            else testToAdd = testToAdd.data;
             if (!testToAdd) {
                 logger.warn(`Test ${testID} is not exist`);
                 return res.status(400).json({
@@ -212,6 +243,8 @@ class Patient {
             }
             patientDocument.testsList = [...patientDocument.testsList, testID];
             const response = await patientDocument.save();
+            redis.setex(`patient_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.del(`all_patients`);
             logger.info(`Patient (${req.params.id}) was updated with new test (${testID})`);
             return res.status(200).json(response);
         } catch (ex) {

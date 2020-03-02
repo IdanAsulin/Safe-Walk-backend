@@ -1,6 +1,6 @@
 const express = require('express');
 const DefaultPlan = require('../controllers/defaultPlan');
-const { authenticate, blockNotTherapists } = require('../middlewares');
+const { authenticate, blockNotTherapists, checkInCache } = require('../middlewares');
 
 const router = express.Router();
 router.use(authenticate);
@@ -12,7 +12,7 @@ router.put('/:id', defaultPlan.editPlan);
 router.delete('/:id', defaultPlan.removePlan);
 router.put('/:id/videos', defaultPlan.addVideos);
 router.delete('/:id/videos', defaultPlan.removeVideos);
-router.get('/', defaultPlan.getAllPlans);
-router.get('/:id', defaultPlan.getPlanByID);
+router.get('/', (req, res, next) => checkInCache(req, res, next, `all_defaultPlan`), defaultPlan.getAllPlans);
+router.get('/:id', (req, res, next) => checkInCache(req, res, next, `defaultPlan_${req.params.id}`), defaultPlan.getPlanByID);
 
 module.exports = router;

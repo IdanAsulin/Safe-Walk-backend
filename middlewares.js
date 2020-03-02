@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const config = require('./config.json');
 const logger = require('./logger');
+const { getFromRedis } = require('./utils');
 
 module.exports = {
     validateRequestBody(err, req, res, next) {
@@ -47,5 +48,21 @@ module.exports = {
             });
         }
         next();
+    },
+
+    async checkInCache(req, res, next, id) {
+        try {
+            const results = await getFromRedis(id);
+            if (results.found && results.data) {
+                logger.info(`Results for id ${id} were returned to the client from REDIS cache memory`);
+                const data = results.data;
+                return res.status(200).json(data);
+            }
+            logger.info(`Results for id ${id} were not found in REDIS cache memory`);
+            next();
+        } catch (ex) {
+            logger.error(ex);
+            return next();
+        }
     }
 };

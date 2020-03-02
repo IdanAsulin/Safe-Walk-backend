@@ -1,12 +1,17 @@
 const Joi = require('joi');
+const redis = require('../redisConnection');
 const sensorsKitDao = require('../dao/sensorsKit');
 const logger = require('../logger');
+const config = require('../config.json');
+const { getFromRedis } = require('../utils');
 
 class SensorsKit {
     createKit = async (req, res) => {
         try {
             const newSensorsKit = new sensorsKitDao();
             const response = await newSensorsKit.save();
+            redis.setex(`sensorsKit_${response.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.del(`all_sensorsKit`);
             logger.info(`Sensors kit was created succesfully- sensorKitID: ${response.id}`);
             return res.status(201).json(response);
         } catch (err) {
@@ -20,6 +25,7 @@ class SensorsKit {
     getAllKits = async (req, res) => {
         try {
             const response = await sensorsKitDao.find().select('-_id').select('-__v');
+            redis.setex('all_sensorsKit', config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (response.length === 0) {
                 logger.warn(`No kits to return`);
                 return res.status(404).json({
@@ -39,6 +45,7 @@ class SensorsKit {
     getKitByID = async (req, res) => {
         try {
             const response = await sensorsKitDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
+            redis.setex(`sensorsKit_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (!response) {
                 logger.warn(`Sensor kit ${req.params.id} not found`);
                 return res.status(404).json({
@@ -68,7 +75,12 @@ class SensorsKit {
             });
         }
         try {
-            const sensorKitDocument = await sensorsKitDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
+            let sensorKitDocument = await getFromRedis(`sensorsKit_${req.params.id}`);
+            if(!sensorKitDocument.found) {
+                sensorKitDocument = await sensorsKitDao.findOne({ id: req.params.id });
+                redis.setex(`sensorsKit_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(sensorKitDocument));
+            }
+            else sensorKitDocument = sensorKitDocument.data;
             if (!sensorKitDocument) {
                 logger.warn(`Sensor kit ${req.params.id} not found`);
                 return res.status(404).json({
@@ -78,6 +90,8 @@ class SensorsKit {
             const { sensor, ip } = value;
             sensorKitDocument.IPs[sensor] = ip;
             const response = await sensorKitDocument.save();
+            redis.setex(`sensorsKit_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.del(`all_sensorsKit`);
             logger.info(`IPs updated successfully in kit ${req.params.id}`);
             return res.status(200).json(response);
         } catch (err) {
@@ -88,7 +102,7 @@ class SensorsKit {
         }
     }
 
-    // TODO:: will be continued
+    // TODO::
     start = async (req, res) => {
         const kitID = req.user.details.sensorsKitID;
         // send to each sensor, command to start scan for x seconds
@@ -101,7 +115,7 @@ class SensorsKit {
 
         // gets the relevant patient
         const patientID = req.user.id;
-        
+
         // creates new test in the database
 
         // store in database - patientGaitModel collection

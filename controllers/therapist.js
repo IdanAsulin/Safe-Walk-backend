@@ -1,6 +1,7 @@
 const Joi = require('joi');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const redis = require('../redisConnection');
 const therapistDao = require('../dao/therapist');
 const logger = require('../logger');
 const config = require('../config.json');
@@ -25,7 +26,7 @@ class Therapist {
             const salt = await bcrypt.genSalt(10);
             password = await bcrypt.hash(password, salt);
             const newTherapist = new therapistDao({ name, mail, password, picture });
-            let response = await therapistDao.findOne({ mail }).select('-_id').select('-__v');
+            let response = await therapistDao.findOne({ mail });
             if (response) {
                 logger.warn(`Therapist with email ${mail} is already exist`);
                 return res.status(409).json({
@@ -33,6 +34,8 @@ class Therapist {
                 });
             }
             response = await newTherapist.save();
+            redis.setex(`therapist_${response.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.del(`all_therapists`);
             const payload = {
                 user: {
                     id: response.id,
@@ -65,6 +68,7 @@ class Therapist {
     getAllTherapists = async (req, res) => {
         try {
             const response = await therapistDao.find().select('-_id').select('-__v');
+            redis.setex(`all_therapists`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (response.length === 0) {
                 logger.warn(`No therapists to return`);
                 return res.status(404).json({
@@ -84,6 +88,7 @@ class Therapist {
     getTherapistByID = async (req, res) => {
         try {
             const response = await therapistDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
+            redis.setex(`therapist_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (!response) {
                 logger.warn(`Therapist ${req.params.id} was not found`);
                 return res.status(404).json({
