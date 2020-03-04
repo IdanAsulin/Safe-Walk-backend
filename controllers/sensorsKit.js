@@ -75,12 +75,8 @@ class SensorsKit {
             });
         }
         try {
-            let sensorKitDocument = await getFromRedis(`sensorsKit_${req.params.id}`);
-            if(!sensorKitDocument.found) {
-                sensorKitDocument = await sensorsKitDao.findOne({ id: req.params.id });
-                redis.setex(`sensorsKit_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(sensorKitDocument));
-            }
-            else sensorKitDocument = sensorKitDocument.data;
+            const sensorKitDocument = await sensorsKitDao.findOne({ id: req.params.id });
+            redis.setex(`sensorsKit_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(sensorKitDocument));
             if (!sensorKitDocument) {
                 logger.warn(`Sensor kit ${req.params.id} not found`);
                 return res.status(404).json({
@@ -95,7 +91,7 @@ class SensorsKit {
             logger.info(`IPs updated successfully in kit ${req.params.id}`);
             return res.status(200).json(response);
         } catch (err) {
-            logger.error(`Error while trying to update ${sensor} of kit ${req.params.id} with new IP: ${err.message}`);
+            logger.error(`Error while trying to update sensors kit ${req.params.id} with new IP: ${err.message}`);
             return res.status(500).json({
                 message: `Internal server error`
             });
