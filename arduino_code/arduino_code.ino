@@ -1,4 +1,3 @@
-
 #include <aWOT.h>
 #include <SPI.h>
 #include <WiFiNINA.h>
@@ -6,22 +5,12 @@
 #include "wifi_secrets.h"
 #include <avr/dtostrf.h>.
 
-#define serverURL "192.168.0.2"
-String sensorName = "sensor1";
-String kitID = "476da3c2-8581-45f5-a54f-e412fb001e6b";
 String errorMessage = "";
-char ssid[] = SECRET_SSID;
-char pass[] = SECRET_PASS;
 
 int status = WL_IDLE_STATUS;
 WiFiServer server(80);
 Application app;
 WiFiClient client; // WiFiSSLClient to use when application is hosted on cloud
-
-String floatToString(float number) {
-  char buffer[6];
-  return dtostrf(number, 0, 5, buffer);
-}
 
 void callback(Request &req, Response &res) {
   float x, y, z;
@@ -32,15 +21,17 @@ void callback(Request &req, Response &res) {
   res.println("[");
   while((endTime - startTime) <= 60000) {
     if (IMU.accelerationAvailable()) {
-      Serial.print("Sample has been taken --");
+      Serial.print("Sample has been taken -- ");
       Serial.println(index++);
       IMU.readAcceleration(x, y, z);
-      String xString = floatToString(x), yString = floatToString(y), zString = floatToString(z);
-      res.println("{\"x\":" + xString + ",\"y\":" + yString + ", \"z\":" + zString + "},");
+      char rawData[35];
+      sprintf(rawData, "{\"x\":%f,\"y\":%f,\"z\":%f},", x, y, z);
+      res.print(rawData);
     }
     endTime = millis();
   }
   res.println("]");
+  res.end();
   Serial.println("Returning results");
 }
 
@@ -54,14 +45,12 @@ String IpAddress2String(const IPAddress& ipAddress)
 
 void HTTPRequest(String HTTPMethod, String endpoint, String jsonBody){
   if(WiFi.status()== WL_CONNECTED){
+     #define serverURL "172.20.10.3"
      if (client.connect(serverURL, 3000)) { // replace port to 443 when application hosted on cloud
         client.println(HTTPMethod + " " + endpoint + " HTTP/1.1");
         client.print("Host: ");
         client.println(serverURL);
         client.println("Content-type: application/json");
-        client.println("Accept: application/json");
-        client.println("Cache-Control: no-cache");
-        client.println("Accept-Encoding: gzip, deflate");
         client.print("Content-Length: ");
         client.println(jsonBody.length());
         client.println("Connection: close");
@@ -83,10 +72,14 @@ void setup() {
     errorMessage = "Please upgrade the firmware";
   }
   while (status != WL_CONNECTED) {
+    char ssid[] = SECRET_SSID;
+    char pass[] = SECRET_PASS;
     status = WiFi.begin(ssid, pass);
     delay(1000);
   }
   String localIP = IpAddress2String(WiFi.localIP());
+  String sensorName = "sensor1";
+  String kitID = "476da3c2-8581-45f5-a54f-e412fb001e6b";
   String jsonBody = "{\n    \"sensor\": \"" + sensorName + "\",\n    \"ip\": \"" + localIP + "\"\n}";
   String endpoint = "/api/sensorsKit/" + kitID + "/ips";
 //  HTTPRequest("PUT", endpoint, jsonBody);
@@ -97,7 +90,6 @@ void setup() {
   if (!IMU.begin())
     while (1);
 }
-
 
 void loop() {
   WiFiClient client1 = server.available();
