@@ -82,13 +82,13 @@ void setup() {
   String kitID = "476da3c2-8581-45f5-a54f-e412fb001e6b";
   String jsonBody = "{\n    \"sensor\": \"" + sensorName + "\",\n    \"ip\": \"" + localIP + "\"\n}";
   String endpoint = "/api/sensorsKit/" + kitID + "/ips";
-//  HTTPRequest("PUT", endpoint, jsonBody);
-  Serial.begin(115200); // Comment out in production
-  Serial.println(localIP); // Comment out in production
+  HTTPRequest("PUT", endpoint, jsonBody);
   app.post("/start", &callback);
   server.begin();
   if (!IMU.begin())
     while (1);
+  Serial.begin(115200); // Comment out in production
+  Serial.println(localIP); // Comment out in production
 }
 
 void loop() {
