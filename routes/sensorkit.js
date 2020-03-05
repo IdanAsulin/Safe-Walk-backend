@@ -11,4 +11,4 @@ router.get('/:id', [authenticate, (req, res, next) => checkInCache(req, res, nex
 router.post('/:id/start', [authenticate, blockNotPatients], sensorsKit.start);
 router.put('/:id/ips', sensorsKit.updateIPs);
 
-module.exports = router
+module.exports = router;
