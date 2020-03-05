@@ -17,7 +17,8 @@ Create a new file called config.json with the following content
     "DB_CONNECTION_URL": "mongodb://<user>:<password>@ds215229.mlab.com:15229/<DB name>",
     "JWT_SECRET": "YOUR_SECRET_KEY",
     "TOKEN_EXPIRES_IN": 36000,
-    "HTTPS_ENV": false
+    "HTTPS_ENV": false,
+    "CACHE_TTL_FOR_GET_REQUESTS": 5000
 }
 ```
 
