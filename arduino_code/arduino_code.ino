@@ -72,6 +72,8 @@ void setup() {
     status = WiFi.begin(ssid, pass);
   }
   String localIP = IpAddress2String(WiFi.localIP());
+  Serial.begin(9600); // Comment out in production
+  Serial.println(localIP); // Comment out in production
   String jsonBody = "{\n    \"sensor\": \"" + sensorName + "\",\n    \"ip\": \"" + localIP + "\"\n}";
   String endpoint = "/api/sensorsKit/" + kitID + "/ips";
   HTTPRequest("PUT", endpoint, jsonBody);
@@ -79,8 +81,6 @@ void setup() {
   server.begin();
   if (!IMU.begin())
     while (1);
-  Serial.begin(115200); // Comment out in production
-  Serial.println(localIP); // Comment out in production
 }
 
 void loop() {
