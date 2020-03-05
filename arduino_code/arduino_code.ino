@@ -59,6 +59,8 @@ void HTTPRequest(String HTTPMethod, String endpoint, String jsonBody){
 }
 
 void setup() {
+  Serial.begin(9600); // Comment out in production
+  while(!Serial);
   String sensorName = "sensor1";
   String kitID = "476da3c2-8581-45f5-a54f-e412fb001e6b";
   if (WiFi.status() == WL_NO_MODULE)
@@ -67,12 +69,12 @@ void setup() {
   if (fv < WIFI_FIRMWARE_LATEST_VERSION)
         while(true);   // "Please upgrade the firmware";
   while (status != WL_CONNECTED) {
+    Serial.println("Attempting to connect to WIFI");
     char ssid[] = SECRET_SSID;
     char pass[] = SECRET_PASS;
     status = WiFi.begin(ssid, pass);
   }
   String localIP = IpAddress2String(WiFi.localIP());
-  Serial.begin(9600); // Comment out in production
   Serial.println(localIP); // Comment out in production
   String jsonBody = "{\n    \"sensor\": \"" + sensorName + "\",\n    \"ip\": \"" + localIP + "\"\n}";
   String endpoint = "/api/sensorsKit/" + kitID + "/ips";
