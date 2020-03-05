@@ -67,7 +67,7 @@ In order to implemet logout functionality in the front-end, you as a front-end d
 
 ## Deployment
 
-This application deployed on an EC2 instance on AWS platform
+This application deployed on an EC2 instance on AWS platform - 
 [Server URL](http://ec2-3-89-190-108.compute-1.amazonaws.com:3000)
 
 ## Built With
