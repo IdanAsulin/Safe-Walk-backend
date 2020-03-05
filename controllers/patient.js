@@ -164,7 +164,7 @@ class Patient {
 
     getAllPatients = async (req, res) => {
         try {
-            const response = await patientDao.find().select('-_id').select('-__v');
+            const response = await patientDao.find().select('-_id').select('-__v').select('-password');
             redis.setex('all_patients', config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (response.length === 0) {
                 logger.warn(`No patients to return`);
@@ -184,7 +184,7 @@ class Patient {
 
     getPatientByID = async (req, res) => {
         try {
-            const response = await patientDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
+            const response = await patientDao.findOne({ id: req.params.id }).select('-_id').select('-__v').select('-password');
             redis.setex(`patient_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (!response) {
                 logger.warn(`Patient (${req.params.id}) not found`);

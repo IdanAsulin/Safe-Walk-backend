@@ -67,7 +67,7 @@ class Therapist {
 
     getAllTherapists = async (req, res) => {
         try {
-            const response = await therapistDao.find().select('-_id').select('-__v');
+            const response = await therapistDao.find().select('-_id').select('-__v').select('-password');
             redis.setex(`all_therapists`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (response.length === 0) {
                 logger.warn(`No therapists to return`);
@@ -87,7 +87,7 @@ class Therapist {
 
     getTherapistByID = async (req, res) => {
         try {
-            const response = await therapistDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
+            const response = await therapistDao.findOne({ id: req.params.id }).select('-_id').select('-__v').select('-password');
             redis.setex(`therapist_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (!response) {
                 logger.warn(`Therapist ${req.params.id} was not found`);
