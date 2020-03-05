@@ -5,8 +5,6 @@
 #include "wifi_secrets.h"
 #include <avr/dtostrf.h>.
 
-String errorMessage = "";
-
 int status = WL_IDLE_STATUS;
 WiFiServer server(80);
 Application app;
@@ -18,7 +16,7 @@ void callback(Request &req, Response &res) {
   unsigned long endTime = startTime;
   int index = 1;
   res.set("Content-Type", "application/json");
-  res.println("[");
+  res.print("[");
   while((endTime - startTime) <= 60000) {
     if (IMU.accelerationAvailable()) {
       Serial.print("Sample has been taken -- ");
@@ -32,7 +30,6 @@ void callback(Request &req, Response &res) {
   }
   res.println("]");
   res.end();
-  Serial.println("Returning results");
 }
 
 String IpAddress2String(const IPAddress& ipAddress)
@@ -56,35 +53,30 @@ void HTTPRequest(String HTTPMethod, String endpoint, String jsonBody){
         client.println("Connection: close");
         client.println();
         client.println(jsonBody);
-     } else {
-      errorMessage = "Error connecting to server";
-     }
+     } else
+        while(true);
   }
 }
 
 void setup() {
-  if (WiFi.status() == WL_NO_MODULE) {
-    errorMessage = "Communication with WiFi module failed!";
+  String sensorName = "sensor1";
+  String kitID = "476da3c2-8581-45f5-a54f-e412fb001e6b";
+  if (WiFi.status() == WL_NO_MODULE)
     while (true);
-  }
   String fv = WiFi.firmwareVersion();
-  if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
-    errorMessage = "Please upgrade the firmware";
-  }
+  if (fv < WIFI_FIRMWARE_LATEST_VERSION)
+        while(true);   // "Please upgrade the firmware";
   while (status != WL_CONNECTED) {
     char ssid[] = SECRET_SSID;
     char pass[] = SECRET_PASS;
     status = WiFi.begin(ssid, pass);
-    delay(1000);
   }
   String localIP = IpAddress2String(WiFi.localIP());
-  String sensorName = "sensor1";
-  String kitID = "476da3c2-8581-45f5-a54f-e412fb001e6b";
-  String jsonBody = "{\n    \"sensor\": \"" + sensorName + "\",\n    \"ip\": \"" + localIP + "\"\n}";
-  String endpoint = "/api/sensorsKit/" + kitID + "/ips";
-//  HTTPRequest("PUT", endpoint, jsonBody);
   Serial.begin(115200); // Comment out in production
   Serial.println(localIP); // Comment out in production
+  String jsonBody = "{\n    \"sensor\": \"" + sensorName + "\",\n    \"ip\": \"" + localIP + "\"\n}";
+  String endpoint = "/api/sensorsKit/" + kitID + "/ips";
+  HTTPRequest("PUT", endpoint, jsonBody);
   app.post("/start", &callback);
   server.begin();
   if (!IMU.begin())
@@ -93,7 +85,6 @@ void setup() {
 
 void loop() {
   WiFiClient client1 = server.available();
-  if (client1.connected()) {
+  if (client1.connected())
     app.process(&client1);
-  }
 }
