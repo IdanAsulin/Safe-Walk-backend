@@ -71,12 +71,14 @@ Add additional notes about how to deploy this on a live system
 ## Built With
 
 * [Node.js](http://www.dropwizard.io/1.0.2/docs/) - Programming language
+* [C++](http://www.cplusplus.com/) - Programming language used for Arduino
 * [NPM](https://www.npmjs.com/) - Dependency Management
 * [Redis](https://redis.io) - Cache mechanism
 * [Express](https://expressjs.com/) - Web framework
 * [Mongo DB](https://www.mongodb.com/) - Database
 * [Winston](https://github.com/winstonjs/winston) - Logs management
 * [JWT](https://www.npmjs.com/package/jsonwebtoken) - Token based authentication management
+* [Arduino Nano 33 IOT](https://store.arduino.cc/arduino-nano-33-iot) - Computing unit with an IMU sensor for human walking measurement
 
 ## Authors
 
