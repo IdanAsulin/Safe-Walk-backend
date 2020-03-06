@@ -2,8 +2,8 @@
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include <Arduino_LSM6DS3.h>
-#include "wifi_secrets.h"
 #include <avr/dtostrf.h>.
+#include "wifi_secrets.h"
 
 WiFiServer server(80);
 Application app;
@@ -14,6 +14,7 @@ void callback(Request &req, Response &res) {
   int index = 1;
   res.set("Content-Type", "application/json");
   res.print("[");
+  res.flush();
   while((endTime - startTime) <= 60000) {
     if (IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
       Serial.print(F("Sample has been taken -- "));
@@ -29,7 +30,9 @@ void callback(Request &req, Response &res) {
     endTime = millis();
   }
   res.println("]");
+  res.flush();
   res.end();
+  Serial.print(F("Done"));
 }
 
 String toString(const IPAddress& address) {
@@ -38,17 +41,17 @@ String toString(const IPAddress& address) {
 
 void updateIpInServer(WiFiClient client, char* localIP) {
   if(WiFi.status() == WL_CONNECTED) {
-     char serverURL[] = "3.89.190.108";
+     char serverIP[] = "3.89.190.108";
      char sensorName[] = "sensor1";
+     char kitID[] = "476da3c2-8581-45f5-a54f-e412fb001e6b";
      char jsonBody[25];
      sprintf(jsonBody, "{\"sensor\":%s,\"ip\":%s}", sensorName, localIP);
-     char kitID[] = "476da3c2-8581-45f5-a54f-e412fb001e6b";
-     if (client.connect(serverURL, 3000)) {
+     if (client.connect(serverIP, 3000)) {
         char httpRequest[80];
         sprintf(httpRequest, "PUT /api/sensorsKit/%s/ips HTTP/1.1", kitID);
         client.println(httpRequest);
         client.print(F("Host: "));
-        client.println(serverURL);
+        client.println(serverIP);
         client.println(F("Content-type: application/json"));
         client.print(F("Content-Length: "));
         client.println(25); // length of jsonBody
@@ -66,7 +69,7 @@ void setup() {
   if (WiFi.status() == WL_NO_MODULE)
     while (true);
   if (WiFi.firmwareVersion() < WIFI_FIRMWARE_LATEST_VERSION)
-        while(true);   // "Please upgrade the firmware";
+    while(true);
   int status = WL_IDLE_STATUS;
   while (status != WL_CONNECTED) {
     Serial.println(F("Attempting to connect to WIFI"));
