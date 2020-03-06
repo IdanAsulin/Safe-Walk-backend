@@ -1,2 +1,2 @@
-#define SECRET_SSID "IdanIphone"
-#define SECRET_PASS "1234567890"
+#define SECRET_SSID "Idanasulin"
+#define SECRET_PASS "0523858877"
