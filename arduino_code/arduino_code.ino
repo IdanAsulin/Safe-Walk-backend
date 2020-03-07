@@ -39,22 +39,20 @@ String toString(const IPAddress& address) {
   return String() + address[0] + "." + address[1] + "." + address[2] + "." + address[3];
 }
 
-void updateIpInServer(WiFiClient client, char* localIP) {
+void updateIpInServer(char* localIP) {
   if(WiFi.status() == WL_CONNECTED) {
-     char serverIP[] = "3.89.190.108";
-     char sensorName[] = "sensor1";
-     char kitID[] = "476da3c2-8581-45f5-a54f-e412fb001e6b";
-     char jsonBody[25];
-     sprintf(jsonBody, "{\"sensor\":%s,\"ip\":%s}", sensorName, localIP);
+     #define serverIP "3.89.190.108"
+     String sensorName = F("sensor1");
+     String kitID = F("476da3c2-8581-45f5-a54f-e412fb001e6b");
+     WiFiClient client;
      if (client.connect(serverIP, 3000)) {
-        char httpRequest[80];
-        sprintf(httpRequest, "PUT /api/sensorsKit/%s/ips HTTP/1.1", kitID);
-        client.println(httpRequest);
+        String jsonBody = "{\"sensor\":\"" + sensorName + "\",\"ip\":\"" + localIP + "\"}";
+        client.println("PUT /api/sensorsKit/" + kitID + "/ips HTTP/1.1");
         client.print(F("Host: "));
         client.println(serverIP);
         client.println(F("Content-type: application/json"));
         client.print(F("Content-Length: "));
-        client.println(25); // length of jsonBody
+        client.println(jsonBody.length());
         client.println(F("Connection: close"));
         client.println();
         client.println(jsonBody);
@@ -80,8 +78,7 @@ void setup() {
   char localIP[18];
   sprintf(localIP, "%s", toString(WiFi.localIP()).c_str());
   Serial.println(localIP);
-  WiFiClient client;
-  updateIpInServer(client, localIP);
+  updateIpInServer(localIP);
   server.begin();
   app.post("/start", &callback);
   if (!IMU.begin())
