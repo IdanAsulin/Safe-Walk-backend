@@ -57,10 +57,6 @@ Flush all DBs inside REDIS
 npm run flush-redis
 ```
 
-### Notes
-
-In order to implemet logout functionality in the front-end, you as a front-end developer will be responsible to remove the token from the application domain cookies. Cookie name: x-auth-token
-
 ## Postman Collection
 
 [Postman Collection](https://documenter.getpostman.com/view/5659041/SWTHbF9Z?version=latest)

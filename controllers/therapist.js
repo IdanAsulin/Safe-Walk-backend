@@ -51,11 +51,7 @@ class Therapist {
                     });
                 }
                 logger.info(`A new therapist was created successfully -- therapistID: ${response.id}`);
-                return res.cookie('x-auth-token', token, {
-                    expires: new Date(Date.now() + config.TOKEN_EXPIRES_IN),
-                    secure: config.HTTPS_ENV,
-                    httpOnly: true,
-                }).status(201).json({ token });
+                return res.status(201).json({ token });
             });
         } catch (ex) {
             logger.error(`Error while trying to create new therapist: ${ex.message}`);

@@ -56,11 +56,7 @@ class Auth {
                     });
                 }
                 logger.info(`User ${mail} was logged in`);
-                return res.cookie('x-auth-token', token, {
-                    expires: new Date(Date.now() + config.TOKEN_EXPIRES_IN),
-                    secure: config.HTTPS_ENV,
-                    httpOnly: true,
-                }).status(200).json({ token });
+                return res.status(200).json({ token });
             })
         } catch (ex) {
             logger.error(`Error while trying to login (${mail}): ${ex.message}`);

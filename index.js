@@ -2,7 +2,6 @@ require('./dbConnection');
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const cookieParser = require('cookie-parser');
 const { validateRequestBody } = require('./middlewares');
 const logger = require('./logger');
 const app = express();
@@ -10,7 +9,6 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cors());
-app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan(':method :url :status :remote-addr -- :response-time ms', { 'stream': logger.stream }));
 app.use(validateRequestBody);

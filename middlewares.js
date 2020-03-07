@@ -11,7 +11,7 @@ module.exports = {
     },
 
     authenticate(req, res, next) {
-        const token = req.cookies['x-auth-token'] || '';
+        const token = req.headers['x-auth-token'] || '';
         if (!token) {
             logger.warn(`User did not send token`);
             return res.status(401).json({
