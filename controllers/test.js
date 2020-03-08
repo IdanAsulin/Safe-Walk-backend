@@ -69,7 +69,7 @@ class Test {
     getTestByID = async (req, res) => {
         try {
             const response = await testDao.findOne({ id: req.params.id }).select('-_id').select('-__v');
-            redis.setex(`test_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(sensorKitDocument));
+            redis.setex(`test_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (!response) {
                 logger.warn(`Test ${req.params.id} was not found`);
                 return res.status(404).json({
