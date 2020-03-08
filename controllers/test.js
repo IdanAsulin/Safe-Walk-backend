@@ -49,7 +49,7 @@ class Test {
     getAllTests = async (req, res) => {
         try {
             const response = await testDao.find().select('-_id').select('-__v');
-            redis.setex(`all_tests`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(sensorKitDocument));
+            redis.setex(`all_tests`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (response.length === 0) {
                 logger.warn(`No tests to return`);
                 return res.status(404).json({
