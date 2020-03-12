@@ -11,25 +11,25 @@ Application app;
 void callback(Request &req, Response &res) {
   unsigned long startTime = millis();
   unsigned long endTime = startTime;
-  int index = 1;
+  int index = 0;
   res.set("Content-Type", "application/json");
   res.print("[");
   res.flush();
   while((endTime - startTime) <= 60000) {
     if (IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
       Serial.print(F("Sample has been taken -- "));
-      Serial.println(index++);
+      Serial.println(index);
       float xA, yA, zA, xG, yG, zG;
       IMU.readAcceleration(xA, yA, zA);
       IMU.readGyroscope(xG, yG, zG);
-      char rawData[80];
-      sprintf(rawData, "{\"xA\":%f,\"yA\":%f,\"zA\":%f,\"xG\":%f,\"yG\":%f,\"zG\":%f},", xA, yA, zA, xG, yG, zG);
+      char rawData[90];
+      sprintf(rawData, "{\"xA\":%f,\"yA\":%f,\"zA\":%f,\"xG\":%f,\"yG\":%f,\"zG\":%f,\"t\":%d},", xA, yA, zA, xG, yG, zG, index++);
       res.print(rawData);
       res.flush();
     }
     endTime = millis();
   }
-  res.println("]");
+  res.print("]");
   res.flush();
   res.end();
   Serial.print(F("Done"));

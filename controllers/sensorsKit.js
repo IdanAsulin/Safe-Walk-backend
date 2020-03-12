@@ -3,7 +3,6 @@ const redis = require('../redisConnection');
 const sensorsKitDao = require('../dao/sensorsKit');
 const logger = require('../logger');
 const config = require('../config.json');
-const { getFromRedis } = require('../utils');
 
 class SensorsKit {
     createKit = async (req, res) => {
