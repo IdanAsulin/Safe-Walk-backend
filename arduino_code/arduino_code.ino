@@ -17,8 +17,8 @@ void callback(Request &req, Response &res) {
   res.flush();
   while((endTime - startTime) <= 60000) {
     if (IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
-      Serial.print(F("Sample has been taken -- "));
-      Serial.println(index);
+//      Serial.print(F("Sample has been taken -- "));
+//      Serial.println(index);
       float xA, yA, zA, xG, yG, zG;
       IMU.readAcceleration(xA, yA, zA);
       IMU.readGyroscope(xG, yG, zG);
@@ -32,7 +32,7 @@ void callback(Request &req, Response &res) {
   res.print("]");
   res.flush();
   res.end();
-  Serial.print(F("Done"));
+//  Serial.print(F("Done"));
 }
 
 String toString(const IPAddress& address) {
@@ -62,22 +62,22 @@ void updateIpInServer(char* localIP) {
 }
 
 void setup() {
-  Serial.begin(9600);
-  while(!Serial);
+//  Serial.begin(9600);
+//  while(!Serial);
   if (WiFi.status() == WL_NO_MODULE)
     while (true);
   if (WiFi.firmwareVersion() < WIFI_FIRMWARE_LATEST_VERSION)
     while(true);
   int status = WL_IDLE_STATUS;
   while (status != WL_CONNECTED) {
-    Serial.println(F("Attempting to connect to WIFI"));
+//    Serial.println(F("Attempting to connect to WIFI"));
     char ssid[] = SECRET_SSID;
     char pass[] = SECRET_PASS;
     status = WiFi.begin(ssid, pass);
   }
   char localIP[18];
   sprintf(localIP, "%s", toString(WiFi.localIP()).c_str());
-  Serial.println(localIP);
+//  Serial.println(localIP);
   updateIpInServer(localIP);
   server.begin();
   app.post("/start", &callback);
