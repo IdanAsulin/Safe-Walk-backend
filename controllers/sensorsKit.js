@@ -98,7 +98,7 @@ class SensorsKit {
     }
 
     // TODO::
-    start = async (req, res) => {
+    processSensorsData = async (req, res) => {
         const kitID = req.user.details.sensorsKitID;
         // send to each sensor, command to start scan for x seconds
 
