@@ -98,11 +98,28 @@ class SensorsKit {
     }
 
     // TODO::
-    processSensorsData = async (req, res) => {
+    analyzeRawData = async (req, res) => {
         const kitID = req.user.details.sensorsKitID;
-        // send to each sensor, command to start scan for x seconds
-
-        // getting the sensors output
+        const schema = Joi.object({
+            rawData: Joi.array().items({
+                xA: Joi.number().required(),
+                yA: Joi.number().required(),
+                zA: Joi.number().required(),
+                xG: Joi.number().required(),
+                yG: Joi.number().required(),
+                zG: Joi.number().required(),
+                t: Joi.number().required(),
+            }).min(1).required(),
+            sensorName: Joi.string().valid('sensor1', 'sensor2', 'sensor3', 'sensor4', 'sensor5', 'sensor6', 'sensor7').required()
+        });
+        const { error, value } = schema.validate(req.body);
+        if (error) {
+            logger.warn(`Bad schema of body parameter`);
+            return res.status(400).json({
+                message: error.details[0].message
+            });
+        }
+        const { sensorName, rawData } = value;
 
         // clean noises -- send to lambda
 
@@ -120,6 +137,10 @@ class SensorsKit {
         // store diagnostic in database - patient collection
 
         // returning results to client
+        return res.status(200).json({
+            sensorName: sensorName,
+            rawData: rawData
+        });
     }
 }
 

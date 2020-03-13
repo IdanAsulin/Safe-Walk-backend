@@ -8,7 +8,7 @@ const sensorsKit = new SensorsKit();
 router.post('/', [authenticate, blockNotTherapists], sensorsKit.createKit);
 router.get('/', [authenticate, blockNotTherapists, (req, res, next) => checkInCache(req, res, next, `all_sensorsKit`)], sensorsKit.getAllKits);
 router.get('/:id', [authenticate, (req, res, next) => checkInCache(req, res, next, `sensorsKit_${req.params.id}`)], sensorsKit.getKitByID);
-router.post('/:id/processSensorsData', [authenticate, blockNotPatients], sensorsKit.processSensorsData);
+router.post('/:id/analyzeRawData', [authenticate, blockNotPatients], sensorsKit.analyzeRawData);
 router.put('/:id/ips', sensorsKit.updateIPs);
 
 module.exports = router;
