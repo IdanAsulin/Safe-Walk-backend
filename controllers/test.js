@@ -144,8 +144,13 @@ class Test {
                     message: 'Not found'
                 });
             }
-            if (abnormality)
+            if (abnormality) {
                 testDocument.abnormality = abnormality;
+                const patient = await patientDao.findOne({ id: testDocument.patientID });
+                patient.waitForPlan = abnormality;
+                await patient.save();
+                redis.setex(`patient_${testDocument.patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(patient));
+            }
             if (detailedDiagnostic)
                 testDocument.detailedDiagnostic = detailedDiagnostic;
             const response = await testDocument.save();
