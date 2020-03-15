@@ -2,7 +2,7 @@
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include <Arduino_LSM6DS3.h>
-#include <avr/dtostrf.h>.
+#include <avr/dtostrf.h>
 #include "wifi_secrets.h"
 
 WiFiServer server(80);
@@ -15,7 +15,7 @@ void callback(Request &req, Response &res) {
   res.set("Content-Type", "application/json");
   res.print("[");
   res.flush();
-  while((endTime - startTime) <= 60000) {
+  while((endTime - startTime) <= 30000) {
     if (IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
 //      Serial.print(F("Sample has been taken -- "));
 //      Serial.println(index);
@@ -86,7 +86,7 @@ void setup() {
 }
 
 void loop() {
-  WiFiClient client = server.available();
-  if (client.connected())
-    app.process(&client);
+  WiFiClient client1 = server.available();
+  if (client1.connected())
+    app.process(&client1);
 }
