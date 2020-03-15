@@ -206,12 +206,6 @@ class AbstractPlan {
         try {
             const response = await planDao.find({ type: this.planType }).select('-_id').select('-__v');
             redis.setex(`all_${this.planType}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
-            if (response.length === 0) {
-                logger.warn(`No ${this.planType}s to return`);
-                return res.status(404).json({
-                    message: `Not found`
-                });
-            }
             logger.info(`All plans returned to the client`);
             return res.status(200).json(response);
         } catch (ex) {

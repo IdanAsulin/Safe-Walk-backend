@@ -166,12 +166,6 @@ class Patient {
         try {
             const response = await patientDao.find().select('-_id').select('-__v').select('-password');
             redis.setex('all_patients', config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
-            if (response.length === 0) {
-                logger.warn(`No patients to return`);
-                return res.status(404).json({
-                    message: `Not found`
-                });
-            }
             logger.info(`All patients returned to the client`);
             return res.status(200).json(response);
         } catch (ex) {

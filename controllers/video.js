@@ -61,12 +61,6 @@ class Video {
         try {
             const response = await videoDao.find().select('-_id').select('-__v');
             redis.setex(`all_videos`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
-            if (response.length === 0) {
-                logger.warn(`No videos to return`);
-                return res.status(404).json({
-                    message: `Not found`
-                });
-            }
             logger.info(`All videos were returned to client`);
             return res.status(200).json(response);
         } catch (ex) {
