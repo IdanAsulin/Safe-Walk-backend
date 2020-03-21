@@ -1,8 +1,16 @@
 const Joi = require('joi');
+const AWS = require('aws-sdk');
 const redis = require('../redisConnection');
 const sensorsKitDao = require('../dao/sensorsKit');
 const logger = require('../logger');
 const config = require('../config.json');
+
+process.env['AWS_ACCESS_KEY_ID'] = config.AWS_ACC_KEY_ID;
+process.env['AWS_SECRET_ACCESS_KEY'] = config.AWS_SEC_ACC_KEY;
+AWS.config.update({
+    region: config.AWS_REGION
+});
+const lambda = new AWS.Lambda();
 
 class SensorsKit {
     createKit = async (req, res) => {
@@ -93,7 +101,6 @@ class SensorsKit {
 
     // TODO::
     analyzeRawData = async (req, res) => {
-        const kitID = req.user.details.sensorsKitID;
         const schema = Joi.object({
             rawData: Joi.array().items({
                 xA: Joi.number().required(),
@@ -104,7 +111,8 @@ class SensorsKit {
                 zG: Joi.number().required(),
                 t: Joi.number().required(),
             }).min(1).required(),
-            sensorName: Joi.string().valid('sensor1', 'sensor2', 'sensor3', 'sensor4', 'sensor5', 'sensor6', 'sensor7').required()
+            sensorName: Joi.string().valid('sensor1', 'sensor2', 'sensor3', 'sensor4', 'sensor5', 'sensor6', 'sensor7').required(),
+            testID: Joi.string().required()
         });
         const { error, value } = schema.validate(req.body);
         if (error) {
@@ -113,28 +121,46 @@ class SensorsKit {
                 message: error.details[0].message
             });
         }
-        const { sensorName, rawData } = value;
+        const { sensorName, rawData, testID } = value;
+        try {
+            const params = {
+                FunctionName: "complementaryFilter",
+                InvocationType: "RequestResponse",
+                Payload: JSON.stringify({
+                    SAMPLE_RATE_HZ: config.SAMPLE_RATE_HZ,
+                    HIGH_PASS_FILTER: config.HIGH_PASS_FILTER,
+                    LOW_PASS_FILTER: config.LOW_PASS_FILTER,
+                    rawData: rawData,
+                    testID: testID,
+                    sensorName: sensorName,
+                })
+            };
+            const response = await lambda.invoke(params).promise();
+            return res.status(200).json({ response: response.Payload });
+        } catch (ex) {
+            logger.error(`Error while trying to analyze raw data: ${ex.message}`);
+            return res.status(500).json({
+                message: `Internal server error`
+            });
+        }
+    }
 
-        // clean noises -- send to lambda
-
-        // normalize data -- send to lambda
-
-        // gets the relevant patient
-        const patientID = req.user.id;
-
-        // creates new test in the database
-
-        // store in database - patientGaitModel collection
-
-        // comparing against normal walking model -- send to lambda
-
-        // store diagnostic in database - patient collection
-
-        // returning results to client
-        return res.status(200).json({
-            sensorName: sensorName,
-            rawData: rawData
-        });
+    complementaryFilter = rawData => {
+        const timeDifference = 1 / config.SAMPLE_RATE_HZ;
+        const hpf = config.HIGH_PASS_FILTER;
+        const lpf = config.LOW_PASS_FILTER;
+        const degreesToRadians = Math.PI / 180;
+        const radiansToDegrees = 180 / Math.PI;
+        let angle = 0;
+        const anglesArray = [];
+        for (let raw of rawData) {
+            const accAngle = Math.atan2(raw.xA, Math.sqrt((raw.yA * raw.yA) + (raw.zA * raw.zA)));
+            const gyr_y = raw.yG * degreesToRadians;
+            const gyroAngle = angle + (gyr_y * timeDifference);
+            angle = ((hpf * gyroAngle) + (lpf * accAngle)) * radiansToDegrees;
+            anglesArray.push({ x: raw.t, value: angle });
+        }
+        return anglesArray;
     }
 }
 

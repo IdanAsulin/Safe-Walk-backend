@@ -8,20 +8,8 @@ const { getFromRedis } = require('../utils');
 
 class PatientGaitModel {
     async createModel(req, res) {
-        const rawDataJoi = Joi.array().items({
-            x: Joi.number().required(),
-            y: Joi.number().required(),
-            z: Joi.number().required(),
-        }).min(1).required();
         const schema = Joi.object({
-            testID: Joi.string().required(),
-            sensor1RawData: rawDataJoi,
-            sensor2RawData: rawDataJoi,
-            sensor3RawData: rawDataJoi,
-            sensor4RawData: rawDataJoi,
-            sensor5RawData: rawDataJoi,
-            sensor6RawData: rawDataJoi,
-            sensor7RawData: rawDataJoi
+            testID: Joi.string().required()
         });
         const { error, value } = schema.validate(req.body);
         if (error) {
@@ -31,7 +19,7 @@ class PatientGaitModel {
             });
         }
         try {
-            const { testID, sensor1RawData, sensor2RawData, sensor3RawData, sensor4RawData, sensor5RawData, sensor6RawData, sensor7RawData } = value;
+            const { testID } = value;
             let model = await getFromRedis(`gaitModel_${testID}`);
             if (!model.found) {
                 model = await patientGaitModelDao.findOne({ testID });
@@ -45,18 +33,18 @@ class PatientGaitModel {
                 });
             }
             let test = await getFromRedis(`test_${testID}`);
-            if(!test.found) {
+            if (!test.found) {
                 test = await testDao.findOne({ id: testID });
                 redis.setex(`test_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             }
             else test = test.data;
             if (!test) {
-                logger.warn(`testID ${testID} to be updated with the new model not found`);
+                logger.warn(`testID ${testID} to be updated with the new model was not found`);
                 return res.status(404).json({
                     message: "The test you are trying to update with the new model is not exist"
                 });
             }
-            const newPatientGatModel = new patientGaitModelDao({ testID, sensor1RawData, sensor2RawData, sensor3RawData, sensor4RawData, sensor5RawData, sensor6RawData, sensor7RawData });
+            const newPatientGatModel = new patientGaitModelDao({ testID });
             const response = await newPatientGatModel.save();
             redis.setex(`gaitModel_${response.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             logger.info(`Patient gait model ${response.id} created successfully`);
@@ -64,6 +52,63 @@ class PatientGaitModel {
         }
         catch (err) {
             logger.error(`Error while trying to create new patient gait model: ${err.message}`);
+            return res.status(500).json({
+                message: "internal server error"
+            });
+        }
+    }
+
+    async updateModel(req, res) {
+        const rawDataJoi = Joi.array().items({
+            timeStamp: Joi.number().required(),
+            angle: Joi.number().required()
+        }).min(1);
+        const schema = Joi.object({
+            sensorName: Joi.string().valid('sensor1', 'sensor2', 'sensor3', 'sensor4', 'sensor5', 'sensor6', 'sensor7').required(),
+            rawData: rawDataJoi
+        });
+        const { error, value } = schema.validate(req.body);
+        if (error) {
+            logger.warn(`Bad schema of body parameter: ${JSON.stringify(req.body)}`);
+            return res.status(400).json({
+                message: error.details[0].message
+            });
+        }
+        try {
+            const testID = req.params.testID;
+            const { sensorName, rawData } = value;
+            let model = await getFromRedis(`gaitModel_${testID}`);
+            if (!model.found) {
+                model = await patientGaitModelDao.findOne({ testID });
+                redis.setex(`gaitModel_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            }
+            else model = model.data;
+            if (!model) {
+                logger.warn(`Model with testID ${testID} was not found`);
+                return res.status(404).json({
+                    message: "Model Not found"
+                });
+            }
+            let test = await getFromRedis(`test_${testID}`);
+            if (!test.found) {
+                test = await testDao.findOne({ id: testID });
+                redis.setex(`test_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            }
+            else test = test.data;
+            if (!test) {
+                logger.warn(`testID ${testID} was not found`);
+                return res.status(404).json({
+                    message: "The test you are trying to update was not found"
+                });
+            }
+            model[sensorName] = rawData;
+            const response = await model.save();
+            redis.setex(`gaitModel_${model.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            logger.info(`Patient gait model ${model.id} updated successfully`);
+            return res.status(200).json(response);
+        }
+        catch (err) {
+            logger.error(`Error while trying to update patient gait model: ${err.message}`);
             return res.status(500).json({
                 message: "internal server error"
             });

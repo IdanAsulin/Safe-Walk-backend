@@ -2,24 +2,15 @@ const Joi = require('joi');
 const redis = require('../redisConnection');
 const testDao = require('../dao/test');
 const patientDao = require('../dao/patient');
+const modelDao = require('../dao/patientGaitModel');
 const logger = require('../logger');
 const config = require('../config.json');
 const { getFromRedis } = require('../utils');
 
 class Test {
     createTest = async (req, res) => {
-        const schema = Joi.object({
-            patientID: Joi.string().required()
-        });
-        const { error, value } = schema.validate(req.body);
-        if (error) {
-            logger.warn(`Bad schema of body parameter: ${JSON.stringify(req.body)}`);
-            return res.status(400).json({
-                message: error.details[0].message
-            });
-        }
-        const { patientID } = value;
-        const newTest = new testDao({ patientID });
+        const patientID = req.user.id;
+        const newTest = new testDao({ patientID: patientID });
         try {
             let patient = await getFromRedis(`patient_${patientID}`);
             if (!patient.found) {
@@ -34,6 +25,8 @@ class Test {
                 });
             }
             const response = await newTest.save();
+            const newModel = new modelDao({ testID: response.id });
+            await newModel.save();
             redis.setex(`test_${response.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(patient));
             redis.del(`all_tests`);
             logger.info(`Test was created succesfully - testID: ${response.id}`);
