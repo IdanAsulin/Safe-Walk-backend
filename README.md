@@ -10,6 +10,8 @@ These instructions will get you a copy of the project up and running on your loc
 
 Create a new dedicated Mongo DB and copy the connection string includes the user/password details
 
+Create new AWS Lambda function and copy the content of each "index.js" file inside "AWS Lambda Functions" directory
+
 Create a new file called config.json with the following content
 
 ```
@@ -18,7 +20,14 @@ Create a new file called config.json with the following content
     "JWT_SECRET": "YOUR_SECRET_KEY",
     "TOKEN_EXPIRES_IN": 36000,
     "HTTPS_ENV": false,
-    "CACHE_TTL_FOR_GET_REQUESTS": 5000
+    "CACHE_TTL_FOR_GET_REQUESTS": 5000,
+    "SAMPLE_RATE_HZ": 104,
+    "HIGH_PASS_FILTER": 0.98,
+    "LOW_PASS_FILTER": 0.02,
+    "AWS_ACC_KEY_ID": "AWS ACCESS KEY ID",
+    "AWS_SEC_ACC_KEY": "AWS SECRET ACCESS KEY",
+    "AWS_REGION": "AWS REGION",
+    "LAMBDA_SECRET_KEY": "YOUR SECRET TOKEN FOR LAMBDA REQUESTS"
 }
 ```
 
@@ -40,7 +49,7 @@ brew install redis (On mac)
 Run Redis server locally and leave the terminal window open
 
 ```
-redis-server (Inside Terminal / CMD)
+npm run start-redis
 ```
 
 Run
@@ -50,6 +59,12 @@ npm start
 ```
 
 ### Special scripts
+
+Start REDIS server
+
+```
+npm run start-redis
+```
 
 Flush all DBs inside REDIS
 
@@ -71,6 +86,7 @@ This application deployed on an EC2 instance on AWS platform -
 * [Node.js](http://www.dropwizard.io/1.0.2/docs/) - Programming language
 * [C++](http://www.cplusplus.com/) - Programming language used for Arduino
 * [NPM](https://www.npmjs.com/) - Dependency Management
+* [AWS Lambda Functions](https://docs.aws.amazon.com/lambda/index.html) - Heavy computations made with Serverless technology
 * [Redis](https://redis.io) - Cache mechanism
 * [Express](https://expressjs.com/) - Web framework
 * [Mongo DB](https://www.mongodb.com/) - Database
