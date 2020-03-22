@@ -30,6 +30,23 @@ module.exports = {
         }
     },
 
+    blockNotLambda(req, res, next) {
+        const token = req.headers['x-auth-token'] || '';
+        if (!token) {
+            logger.warn(`User did not send token`);
+            return res.status(401).json({
+                message: `Authorization denied`
+            });
+        }
+        if (token !== config.LAMBDA_SECRET_KEY) {
+            logger.warn(`Not a Lambda function tried to make that call`);
+            return res.status(401).json({
+                message: `Authorization denied`
+            });
+        }
+        next();
+    }
+
     blockNotTherapists(req, res, next) {
         if (req.user.type !== 'therapist') {
             logger.warn(`User ${req.user.id} which is not a therapist was trying to access therapist's endpoint`);

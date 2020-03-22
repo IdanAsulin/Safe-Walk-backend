@@ -132,35 +132,19 @@ class SensorsKit {
                     LOW_PASS_FILTER: config.LOW_PASS_FILTER,
                     rawData: rawData,
                     testID: testID,
-                    sensorName: sensorName,
+                    sensorName: sensorName
                 })
             };
-            const response = await lambda.invoke(params).promise();
-            return res.status(200).json({ response: response.Payload });
+            const response = await lambda.invoke(params).promise(); // Clean sensors noises & update the gait model DB
+
+
+            return res.status(200).json({ sucess: true });
         } catch (ex) {
             logger.error(`Error while trying to analyze raw data: ${ex.message}`);
             return res.status(500).json({
                 message: `Internal server error`
             });
         }
-    }
-
-    complementaryFilter = rawData => {
-        const timeDifference = 1 / config.SAMPLE_RATE_HZ;
-        const hpf = config.HIGH_PASS_FILTER;
-        const lpf = config.LOW_PASS_FILTER;
-        const degreesToRadians = Math.PI / 180;
-        const radiansToDegrees = 180 / Math.PI;
-        let angle = 0;
-        const anglesArray = [];
-        for (let raw of rawData) {
-            const accAngle = Math.atan2(raw.xA, Math.sqrt((raw.yA * raw.yA) + (raw.zA * raw.zA)));
-            const gyr_y = raw.yG * degreesToRadians;
-            const gyroAngle = angle + (gyr_y * timeDifference);
-            angle = ((hpf * gyroAngle) + (lpf * accAngle)) * radiansToDegrees;
-            anglesArray.push({ x: raw.t, value: angle });
-        }
-        return anglesArray;
     }
 }
 
