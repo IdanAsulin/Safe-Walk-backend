@@ -77,12 +77,8 @@ class PatientGaitModel {
         try {
             const testID = req.params.testID;
             const { sensorName, rawData } = value;
-            let model = await getFromRedis(`gaitModel_${testID}`);
-            if (!model.found) {
-                model = await patientGaitModelDao.findOne({ testID });
-                redis.setex(`gaitModel_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
-            }
-            else model = model.data;
+            let model = await patientGaitModelDao.findOne({ testID });
+            redis.setex(`gaitModel_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(model));
             if (!model) {
                 logger.warn(`Model with testID ${testID} was not found`);
                 return res.status(404).json({
@@ -92,7 +88,7 @@ class PatientGaitModel {
             let test = await getFromRedis(`test_${testID}`);
             if (!test.found) {
                 test = await testDao.findOne({ id: testID });
-                redis.setex(`test_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+                redis.setex(`test_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(test));
             }
             else test = test.data;
             if (!test) {
@@ -103,8 +99,8 @@ class PatientGaitModel {
             }
             model[sensorName] = rawData;
             const response = await model.save();
-            redis.setex(`gaitModel_${model.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
-            logger.info(`Patient gait model ${model.id} updated successfully`);
+            redis.setex(`gaitModel_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            logger.info(`Patient gait model for test ${testID} updated successfully`);
             return res.status(200).json(response);
         }
         catch (err) {
