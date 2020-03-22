@@ -9,14 +9,6 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '15mb' }));
 app.use(cors());
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE");
-    res.header("HTTP/1.1 200 OK");
-    res.set("Content-Type", "application/json");
-    next();
-});
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan(':method :url :status :remote-addr -- :response-time ms', { 'stream': logger.stream }));
 app.use(validateRequestBody);
