@@ -70,7 +70,7 @@ void loop() {
           client.println(F("Connection: close"));
           client.println();
           client.print(F("["));
-          while ((endTime - startTime) <= 8000) {
+          while ((endTime - startTime) <= 15000) {
             if (IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
 //              Serial.print(F("Sample has been taken -- "));
 //              Serial.println(index);
