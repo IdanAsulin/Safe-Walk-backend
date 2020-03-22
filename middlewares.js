@@ -45,7 +45,7 @@ module.exports = {
             });
         }
         next();
-    }
+    },
 
     blockNotTherapists(req, res, next) {
         if (req.user.type !== 'therapist') {
