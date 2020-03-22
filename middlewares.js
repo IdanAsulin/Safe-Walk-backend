@@ -32,7 +32,7 @@ module.exports = {
 
     blockNotLambda(req, res, next) {
         const token = req.headers['x-auth-token'] || '';
-        console.log(`\n\nreq: ${req.headers}`);
+        console.log(`\n\nreq: ${req.headers['x-auth-token']}`);
         if (!token) {
             logger.warn(`User did not send token`);
             return res.status(401).json({
