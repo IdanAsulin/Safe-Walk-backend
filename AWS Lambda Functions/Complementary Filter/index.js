@@ -1,6 +1,7 @@
 const request = require('request-promise');
 
 const serverURL = "http://ec2-3-89-190-108.compute-1.amazonaws.com:3000/api";
+const LAMBDA_SECRET = '<SECRET LAMBDA KEY>';
 
 exports.handler = async (event, context, callback) => {
     const timeDifference = 1 / event.SAMPLE_RATE_HZ;
@@ -19,7 +20,10 @@ exports.handler = async (event, context, callback) => {
     }
     const options = {
         url: `${serverURL}/patientGaitModel/${event.testID}`,
-        'headers': { 'Content-Type': 'application/json' },
+        'headers': { 
+            'Content-Type': 'application/json',
+            'x-auth-token': LAMBDA_SECRET
+        },
         body: {
             sensorName: event.sensorName,
             rawData: anglesArray
