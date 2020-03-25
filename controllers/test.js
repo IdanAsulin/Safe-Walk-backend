@@ -83,17 +83,11 @@ class Test {
             else response = response.data;
             if (!response) {
                 logger.warn(`Patient ${req.params.patientID} is not exist`);
-                return res.status(400).json({
+                return res.status(404).json({
                     message: "The patient you have sent is not exist"
                 });
             }
             response = await testDao.find({ patientID: req.params.patientID }).select('-_id').select('-__v');
-            if (response.length === 0) {
-                logger.warn(`Patient ${req.params.patientID} has no tests`);
-                return res.status(404).json({
-                    message: "Not found"
-                });
-            }
             logger.info(`Patient ${req.params.patientID} tests were returned to the client`);
             return res.status(200).json(response);
         } catch (err) {

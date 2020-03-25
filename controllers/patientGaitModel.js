@@ -113,13 +113,19 @@ class PatientGaitModel {
 
     async getModelByTestID(req, res) {
         try {
-            const response = await patientGaitModelDao.findOne({ testID: req.params.testID }).select('-_id').select('-__v');
-            redis.setex(`gaitModel_${req.params.testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            let response = await testDao.findOne({ id: req.params.testID });
+            redis.setex(`test_${req.params.testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             if (!response) {
-                logger.warn(`Model not found`);
+                logger.warn(`Test ${req.params.testID} was not found`);
                 return res.status(404).json({
                     message: 'Not found'
                 });
+            }
+            response = await patientGaitModelDao.findOne({ testID: req.params.testID }).select('-_id').select('-__v');
+            redis.setex(`gaitModel_${req.params.testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            if (!response) {
+                logger.warn(`Model for test ${req.params.testID} was not found`);
+                return res.status(200).json({});
             }
             logger.info(`Returns model details of test ${req.params.testID}`);
             return res.status(200).json(response);
