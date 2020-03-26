@@ -5,7 +5,9 @@ const Schema = mongoose.Schema;
 
 const rawDataStructure = {
     timeStamp: { type: Number, required: true },
-    angle: { type: Number, required: true }
+    roll_angle_x: { type: Number, required: true },
+    pitch_angle_y: { type: Number, required: true },
+    yaw_angle_z: { type: Number, required: true }
 };
 
 const patientGaitModelSchema = new Schema({

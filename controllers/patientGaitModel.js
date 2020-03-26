@@ -61,7 +61,9 @@ class PatientGaitModel {
     async updateModel(req, res) {
         const rawDataJoi = Joi.array().items({
             timeStamp: Joi.number().required(),
-            angle: Joi.number().required()
+            roll_angle_x: Joi.number().required(),
+            pitch_angle_y: Joi.number().required(),
+            yaw_angle_z: Joi.number().required()
         }).min(1);
         const schema = Joi.object({
             sensorName: Joi.string().valid('sensor1', 'sensor2', 'sensor3', 'sensor4', 'sensor5', 'sensor6', 'sensor7').required(),

@@ -9,18 +9,27 @@ exports.handler = async (event, context, callback) => {
     const lpf = event.LOW_PASS_FILTER;
     // const degreesToRadians = Math.PI / 180;
     const radiansToDegrees = 180 / Math.PI;
-    let angle = 0;
+    let roll_angle_x = 0;
+    let pitch_angle_y = 0;
+    let yaw_angle_z = 0;
     const anglesArray = [];
     for (let raw of event.rawData) {
-        const accAngle = Math.atan2(raw.xA, Math.sqrt((raw.yA * raw.yA) + (raw.zA * raw.zA))) * radiansToDegrees;
-        const gyr_y = raw.yG;
-        const gyroAngle = angle + (gyr_y * timeDifference);
-        angle = ((hpf * gyroAngle) + (lpf * accAngle));
-        anglesArray.push({ timeStamp: raw.t, angle: angle });
+        const acc_roll_angle = Math.atan2(raw.zA, raw.yA);
+        const acc_pitch_angle = Math.atan2(raw.xA, raw.zA);
+        const acc_yaw_angle = Math.atan2(raw.yA, raw.xA);
+        roll_angle_x = hpf * roll_angle_x + raw.xG * timeDifference + lpf * acc_roll_angle;
+        pitch_angle_y = hpf * pitch_angle_y + raw.yG * timeDifference + lpf * acc_pitch_angle;
+        yaw_angle_z = hpf * yaw_angle_z + raw.zG * timeDifference + lpf * acc_yaw_angle;
+        anglesArray.push({
+            timeStamp: raw.t,
+            roll_angle_x: roll_angle_x,
+            pitch_angle_y: pitch_angle_y,
+            yaw_angle_z: yaw_angle_z
+        });
     }
     const options = {
         url: `${serverURL}/patientGaitModel/${event.testID}`,
-        'headers': { 
+        headers: { 
             'Content-Type': 'application/json',
             'x-auth-token': LAMBDA_SECRET
         },
