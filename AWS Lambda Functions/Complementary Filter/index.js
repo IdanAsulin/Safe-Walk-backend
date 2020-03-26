@@ -14,9 +14,9 @@ exports.handler = async (event, context, callback) => {
     let yaw_angle_z = 0;
     const anglesArray = [];
     for (let raw of event.rawData) {
-        const acc_roll_angle = Math.atan2(raw.zA, raw.yA);
-        const acc_pitch_angle = Math.atan2(raw.xA, raw.zA);
-        const acc_yaw_angle = Math.atan2(raw.yA, raw.xA);
+        const acc_roll_angle = Math.atan2(raw.zA, raw.yA) * radiansToDegrees;
+        const acc_pitch_angle = Math.atan2(raw.xA, raw.zA) * radiansToDegrees;
+        const acc_yaw_angle = Math.atan2(raw.yA, raw.xA) * radiansToDegrees;
         roll_angle_x = hpf * roll_angle_x + raw.xG * timeDifference + lpf * acc_roll_angle;
         pitch_angle_y = hpf * pitch_angle_y + raw.yG * timeDifference + lpf * acc_pitch_angle;
         yaw_angle_z = hpf * yaw_angle_z + raw.zG * timeDifference + lpf * acc_yaw_angle;
