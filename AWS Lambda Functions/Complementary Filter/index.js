@@ -27,6 +27,7 @@ exports.handler = async (event, context, callback) => {
             yaw_angle_z: yaw_angle_z
         });
     }
+    anglesArray.splice(0,150); // delete the first 150 samples for sensor fusion needs 
     const options = {
         url: `${serverURL}/patientGaitModel/${event.testID}`,
         headers: { 
