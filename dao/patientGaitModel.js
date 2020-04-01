@@ -5,9 +5,15 @@ const Schema = mongoose.Schema;
 
 const rawDataStructure = {
     timeStamp: { type: Number, required: true },
-    roll_angle_y: { type: Number, required: true },
-    pitch_angle_x: { type: Number, required: true },
-    yaw_angle_z: { type: Number, required: true }
+    x: { type: Number, required: true },
+    y: { type: Number, required: true },
+    z: { type: Number, required: true }
+};
+
+const sensorData = {
+    accelerations: { type: [rawDataStructure], default: [] },
+    velocities: { type: [rawDataStructure], default: [] },
+    displacements: { type: [rawDataStructure], default: [] }
 };
 
 const patientGaitModelSchema = new Schema({
@@ -19,13 +25,13 @@ const patientGaitModelSchema = new Schema({
         type: String,
         required: true
     },
-    sensor1: { type: [rawDataStructure], default: [] },
-    sensor2: { type: [rawDataStructure], default: [] },
-    sensor3: { type: [rawDataStructure], default: [] },
-    sensor4: { type: [rawDataStructure], default: [] },
-    sensor5: { type: [rawDataStructure], default: [] },
-    sensor6: { type: [rawDataStructure], default: [] },
-    sensor7: { type: [rawDataStructure], default: [] }
+    sensor1: sensorData,
+    sensor2: sensorData,
+    sensor3: sensorData,
+    sensor4: sensorData,
+    sensor5: sensorData,
+    sensor6: sensorData,
+    sensor7: sensorData
 });
 
 module.exports = mongoose.model('patientGaitModel', patientGaitModelSchema);

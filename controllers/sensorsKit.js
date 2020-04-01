@@ -127,18 +127,16 @@ class SensorsKit {
                 FunctionName: "complementaryFilter",
                 InvocationType: "RequestResponse",
                 Payload: JSON.stringify({
-                    SAMPLE_RATE_HZ: config.SAMPLE_RATE_HZ,
-                    HIGH_PASS_FILTER: config.HIGH_PASS_FILTER,
-                    LOW_PASS_FILTER: config.LOW_PASS_FILTER,
-                    rawData: rawData,
-                    testID: testID,
-                    sensorName: sensorName
+                    CALIBRATION_LENGTH: config.CALIBRATION_LENGTH,
+                    SAMPLE_TIME: config.SAMPLE_TIME,
+                    TEST_ID: testID,
+                    SENSOR_NAME: sensorName,
+                    RAW_DATA: rawData
                 })
             };
             const response = await lambda.invoke(params).promise(); // Clean sensors noises & update the gait model DB
 
-
-            return res.status(200).json({ sucess: true });
+           return res.status(200).json({ sucess: true });
         } catch (ex) {
             logger.error(`Error while trying to analyze raw data: ${ex.message}`);
             return res.status(500).json({

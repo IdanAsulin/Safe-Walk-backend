@@ -61,13 +61,15 @@ class PatientGaitModel {
     async updateModel(req, res) {
         const rawDataJoi = Joi.array().items({
             timeStamp: Joi.number().required(),
-            roll_angle_y: Joi.number().required(),
-            pitch_angle_x: Joi.number().required(),
-            yaw_angle_z: Joi.number().required()
+            x: Joi.number().required(),
+            y: Joi.number().required(),
+            z: Joi.number().required()
         }).min(1);
         const schema = Joi.object({
             sensorName: Joi.string().valid('sensor1', 'sensor2', 'sensor3', 'sensor4', 'sensor5', 'sensor6', 'sensor7').required(),
-            rawData: rawDataJoi
+            accelerations: rawDataJoi,
+            velocities: rawDataJoi,
+            displacements: rawDataJoi
         });
         const { error, value } = schema.validate(req.body);
         if (error) {
@@ -78,7 +80,7 @@ class PatientGaitModel {
         }
         try {
             const testID = req.params.testID;
-            const { sensorName, rawData } = value;
+            const { sensorName, accelerations, velocities, displacements } = value;
             let model = await patientGaitModelDao.findOne({ testID });
             redis.setex(`gaitModel_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(model));
             if (!model) {
@@ -99,16 +101,19 @@ class PatientGaitModel {
                     message: "The test you are trying to update was not found"
                 });
             }
-            // model[sensorName] = rawData; // comment out in production
+            
+            // model[sensorName].accelerations = accelerations; // comment out in production
+            // model[sensorName].velocities = velocities; // comment out in production
+            // model[sensorName].displacements = displacements; // comment out in production
+
             // To be deleted - start
-            model['sensor1'] = rawData;
-            model['sensor2'] = rawData;
-            model['sensor3'] = rawData;
-            model['sensor4'] = rawData;
-            model['sensor5'] = rawData;
-            model['sensor6'] = rawData;
-            model['sensor7'] = rawData;
+            for (let i = 1; i <= 7; ++i) {
+                model[`sensor${i}`].accelerations = accelerations;
+                model[`sensor${i}`].velocities = velocities;
+                model[`sensor${i}`].displacements = displacements;
+            }
             // To be deleted - end
+
             const response = await model.save();
             redis.setex(`gaitModel_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             logger.info(`Patient gait model for test ${testID} updated successfully`);
