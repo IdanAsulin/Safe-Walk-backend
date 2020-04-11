@@ -56,7 +56,11 @@ class Auth {
                     });
                 }
                 logger.info(`User ${mail} was logged in`);
-                return res.status(200).json({ token });
+                return res.status(200).json({
+                    token: token,
+                    name: user.name,
+                    picture: user.picture
+                });
             })
         } catch (ex) {
             logger.error(`Error while trying to login (${mail}): ${ex.message}`);
