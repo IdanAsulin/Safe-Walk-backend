@@ -14,7 +14,7 @@ void updateIpInServer(char* localIP) {
   if (WiFi.status() == WL_CONNECTED) {
 #define serverIP "3.89.190.108"
     String sensorName = F("sensor1");
-    String kitID = F("476da3c2-8581-45f5-a54f-e412fb001e6b");
+    String kitID = F("2e218b37-1807-4a7d-b498-9320427b693a");
     WiFiClient client;
     if (client.connect(serverIP, 3000)) {
       String jsonBody = "{\"sensor\":\"" + sensorName + "\",\"ip\":\"" + localIP + "\"}";
@@ -33,20 +33,20 @@ void updateIpInServer(char* localIP) {
 }
 
 void setup() {
-//  Serial.begin(9600);
-//  while (!Serial);
+  //  Serial.begin(9600);
+  //  while (!Serial);
   if (WiFi.status() == WL_NO_MODULE)
     while (true);
   if (WiFi.firmwareVersion() < WIFI_FIRMWARE_LATEST_VERSION)
     while (true);
   int status = WL_IDLE_STATUS;
   while (status != WL_CONNECTED) {
-//    Serial.println(F("Attempting to connect to WIFI"));
+    //    Serial.println(F("Attempting to connect to WIFI"));
     status = WiFi.begin(SECRET_SSID, SECRET_PASS);
   }
   char localIP[18];
   sprintf(localIP, "%s", toString(WiFi.localIP()).c_str());
-//  Serial.println(localIP);
+  //  Serial.println(localIP);
   updateIpInServer(localIP);
   server.begin();
   if (!IMU.begin())
@@ -56,7 +56,7 @@ void setup() {
 void loop() {
   WiFiClient client = server.available();
   if (client) {
-//    Serial.println("new client");
+    //    Serial.println("new client");
     unsigned long startTime = millis();
     unsigned long endTime = startTime;
     int index = 0;
@@ -66,25 +66,25 @@ void loop() {
         char c = client.read();
         if (c == '\n' && currentLineIsBlank) {
           client.println(F("HTTP/1.1 200 OK"));
+          client.println(F("Access-Control-Allow-Origin: *"));
           client.println(F("Content-Type: application/json"));
-          client.println(F("Connection: close"));
+          client.println(F("Connection: keep-alive"));
           client.println();
           client.print(F("["));
-          while ((endTime - startTime) <= 15000) {
+          while ((endTime - startTime) <= 10000) {
             if (IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
-//              Serial.print(F("Sample has been taken -- "));
-//              Serial.println(index);
+              //              Serial.print(F("Sample has been taken -- "));
+              //              Serial.println(index);
               float xA, yA, zA, xG, yG, zG;
               IMU.readAcceleration(xA, yA, zA);
               IMU.readGyroscope(xG, yG, zG);
               char rawData[105];
-              sprintf(rawData, "{\"xA\":%f,\"yA\":%f,\"zA\":%f,\"xG\":%f,\"yG\":%f,\"zG\":%f,\"t\":%d},", xA, yA, zA, xG, yG, zG, index++);
+              sprintf(rawData, "{\"xA\":%.3f,\"yA\":%.3f,\"zA\":%.3f,\"xG\":%.3f,\"yG\":%.3f,\"zG\":%.3f,\"t\":%d},", xA, yA, zA, xG, yG, zG, index++);
               client.print(rawData);
             }
             endTime = millis();
           }
           client.print(F("]"));
-          delay(1);
           break;
         }
         if (c == '\n') {
@@ -95,6 +95,6 @@ void loop() {
       }
     }
     client.stop();
-//    Serial.println(F("Done"));
+    //    Serial.println(F("Done"));
   }
 }
