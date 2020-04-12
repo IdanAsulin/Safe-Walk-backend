@@ -81,7 +81,7 @@ class AbstractPlan {
                         message: `The patient you have sent is not exist`
                     });
                 }
-                let response = await getFromRedis(`therapist_${therapistID}`);
+                response = await getFromRedis(`therapist_${therapistID}`);
                 if (!response.found) {
                     response = await therapistDao.findOne({ id: therapistID });
                     redis.setex(`therapist_${therapistID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
