@@ -69,13 +69,13 @@ class AbstractPlan {
                         message: `This patient already have rehabilitation plan`
                     });
                 }
-                let patient = await getFromRedis(`patient_${patientID}`);
-                if (!patient.found) {
-                    patient = await patientDao.findOne({ id: patientID });
-                    redis.setex(`patient_${patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(patient));
+                response = await getFromRedis(`patient_${patientID}`);
+                if (!response.found) {
+                    response = await patientDao.findOne({ id: patientID });
+                    redis.setex(`patient_${patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
                 }
-                else patient = patient.data;
-                if (!patient) {
+                else response = response.data;
+                if (!response) {
                     logger.warn(`Patient ${patientID} is not exist`);
                     return res.status(400).json({
                         message: `The patient you have sent is not exist`
@@ -132,8 +132,11 @@ class AbstractPlan {
                 newPlan = new planDao({ name, instructions, videos, type, therapistID, patientID });
             response = await newPlan.save();
             if (this.planType === 'rehabPlan') {
-                patient.rehabPlanID = response.id;
-                await patient.save();
+                let patientDoc = await patientDao.findOne({ id: patientID });
+                patientDoc.rehabPlanID = response.id;
+                await patientDoc.save();
+                redis.setex(`patient_${patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(patientDoc));
+                redis.del(`all_patients`);
             }
             redis.setex(`${this.planType}_${response.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             redis.del(`all_${this.planType}`);
@@ -194,10 +197,19 @@ class AbstractPlan {
     removePlan = async (req, res) => {
         try {
             const response = await planDao.findOneAndRemove({ id: req.params.id, type: this.planType });
-            redis.del(`${this.planType}_${req.params.id}`);
-            redis.del(`all_${this.planType}`);
-            logger.info(`${this.planType} was removed successfully`);
-            if (response) return res.status(200).json();
+            if (response) {
+                redis.del(`${this.planType}_${req.params.id}`);
+                redis.del(`all_${this.planType}`);
+                logger.info(`${this.planType} was removed successfully`);
+                if (this.planType === 'rehabPlan') {
+                    let patient = await patientDao.findOne({ id: response.patientID });
+                    patient.rehabPlanID = "";
+                    await patient.save();
+                    redis.setex(`patient_${response.patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(patient));
+                    redis.del(`all_patients`);
+                }
+                return res.status(200).json();
+            }
             return res.status(202).json();
         } catch (ex) {
             logger.error(`Error while trying to remove plan ${req.params.id}: ${ex.message}`);
