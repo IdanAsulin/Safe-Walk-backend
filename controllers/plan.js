@@ -59,7 +59,8 @@ class AbstractPlan {
             patientID = value.patientID;
         }
         try {
-            let response, defaultPlanVideos = [];
+            let response;
+            let defaultPlanVideos = [];
             if (this.planType === 'rehabPlan') {
                 response = await planDao.findOne({ patientID });
                 if (response) {
