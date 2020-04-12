@@ -69,13 +69,13 @@ class AbstractPlan {
                         message: `This patient already have rehabilitation plan`
                     });
                 }
-                response = await getFromRedis(`patient_${patientID}`);
-                if (!response.found) {
-                    response = await patientDao.findOne({ id: patientID });
-                    redis.setex(`patient_${patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+                let patient = await getFromRedis(`patient_${patientID}`);
+                if (!patient.found) {
+                    patient = await patientDao.findOne({ id: patientID });
+                    redis.setex(`patient_${patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(patient));
                 }
-                else response = response.data;
-                if (!response) {
+                else patient = patient.data;
+                if (!patient) {
                     logger.warn(`Patient ${patientID} is not exist`);
                     return res.status(400).json({
                         message: `The patient you have sent is not exist`
@@ -131,6 +131,10 @@ class AbstractPlan {
             else
                 newPlan = new planDao({ name, instructions, videos, type, therapistID, patientID });
             response = await newPlan.save();
+            if (this.planType === 'rehabPlan') {
+                patient.rehabPlanID = response.id;
+                await patient.save();
+            }
             redis.setex(`${this.planType}_${response.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             redis.del(`all_${this.planType}`);
             logger.info(`${this.planType} created successfully -- planID: ${response.id}`);
