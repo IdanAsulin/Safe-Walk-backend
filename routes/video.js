@@ -4,7 +4,6 @@ const { authenticate, blockNotTherapists, checkInCache } = require('../middlewar
 
 const router = express.Router();
 router.use(authenticate);
-router.use(blockNotTherapists);
 const video = new Video();
 
 router.post('/', blockNotTherapists, video.createVideo);
