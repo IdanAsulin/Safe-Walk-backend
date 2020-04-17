@@ -59,7 +59,8 @@ class Auth {
                 return res.status(200).json({
                     token: token,
                     name: user.name,
-                    picture: user.picture
+                    picture: user.picture,
+                    id: user.id
                 });
             })
         } catch (ex) {
