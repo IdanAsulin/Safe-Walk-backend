@@ -7,9 +7,9 @@ router.use(authenticate);
 router.use(blockNotTherapists);
 const video = new Video();
 
-router.post('/', video.createVideo);
-router.delete('/:id', video.removeVideo);
-router.put('/:id', video.editVideo);
+router.post('/', blockNotTherapists, video.createVideo);
+router.delete('/:id',blockNotTherapists, video.removeVideo);
+router.put('/:id',blockNotTherapists, video.editVideo);
 router.get('/', (req, res, next) => checkInCache(req, res, next, `all_videos`), video.getAllVideos);
 router.get('/:id', (req, res, next) => checkInCache(req, res, next, `video_${req.params.id}`), video.getVideoByID);
 
