@@ -59,9 +59,16 @@ class Video {
 
     getAllVideos = async (req, res) => {
         try {
-            const response = await videoDao.find().select('-_id').select('-__v');
-            redis.setex(`all_videos`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
-            logger.info(`All videos were returned to client`);
+            let response;
+            if (req.params.videoIDs) {
+                response = await videoDao.find({ id: { $in: req.params.videoIDs } }).select('-_id').select('-__v');
+                logger.info(`All video IDs requested by the user were returned`);
+            }
+            else {
+                response = await videoDao.find().select('-_id').select('-__v');
+                redis.setex(`all_videos`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+                logger.info(`All videos were returned to client`);
+            }
             return res.status(200).json(response);
         } catch (ex) {
             logger.error(`Error while trying to get all videos: ${ex.message}`);
