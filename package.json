@@ -6,6 +6,7 @@
   "scripts": {
     "start": "nodemon index",
     "start-redis": "redis-server",
+    "stop-redis": "redis-cli shutdown",
     "flush-redis": "redis-cli FLUSHALL"
   },
   "repository": {

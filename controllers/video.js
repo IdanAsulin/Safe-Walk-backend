@@ -3,7 +3,6 @@ const redis = require('../redisConnection');
 const videoDao = require('../dao/video');
 const logger = require('../logger');
 const config = require('../config.json');
-const { getFromRedis } = require('../utils');
 
 class Video {
     createVideo = async (req, res) => {
@@ -60,8 +59,9 @@ class Video {
     getAllVideos = async (req, res) => {
         try {
             let response;
-            if (req.params.videoIDs) {
-                response = await videoDao.find({ id: { $in: req.params.videoIDs } }).select('-_id').select('-__v');
+            if (req.query.videoIDs) {
+                const videoIDs = req.query.videoIDs.split(',');
+                response = await videoDao.find({ id: { $in: videoIDs } }).select('-_id').select('-__v');
                 logger.info(`All video IDs requested by the user were returned`);
             }
             else {
