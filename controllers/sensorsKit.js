@@ -138,9 +138,6 @@ class SensorsKit {
             /* Detect the best gait cycle and makes calculations of accelerations, velocities and displacements */
             const { Payload } = await lambda.invoke(params).promise();
             const response = JSON.parse(Payload);
-            logger.error('\n\n\n');
-            logger.error(response.statusCode);
-            logger.error('\n\n\n');
             if (response.statusCode === 400) {
                 logger.warn(`The raw data contains less than ${config.MIN_GAIT_CYCLES} gait cycles`);
                 return res.status(400).json({
