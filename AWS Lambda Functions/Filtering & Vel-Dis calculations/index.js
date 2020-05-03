@@ -196,7 +196,7 @@ exports.handler = async (event, context, callback) => {
             },
             body: {
                 sensorName: event.SENSOR_NAME,
-                accelerations: accelerations,
+                accelerations: cycle_accs,
                 velocities: velocities,
                 displacements: displacements
             },
