@@ -136,7 +136,7 @@ exports.handler = async (event, context, callback) => {
             };
             return callback(null, error);
         }
-        const chosenCycleIndex = event.MIN_GAIT_CYCLES / 2;
+        const chosenCycleIndex = Math.floor(event.MIN_GAIT_CYCLES / 2);
         const start = spikes[chosenCycleIndex].x - 30; // gait cycle start is the middle cycle
         const end = spikes[chosenCycleIndex + 1].x + 3; // gait cycle end - the start of the next cycle
         const cycle_accs = [];
