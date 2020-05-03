@@ -137,7 +137,7 @@ class SensorsKit {
             };
             /* Detect the best gait cycle and makes calculations of accelerations, velocities and displacements */
             const response = await lambda.invoke(params).promise();
-            logger.error(response);
+            logger.error(JSON.stringify(response));
             return res.status(200).json({ sucess: true });
         } catch (ex) {
             logger.error(`Error while trying to analyze raw data: ${ex.message}`);
