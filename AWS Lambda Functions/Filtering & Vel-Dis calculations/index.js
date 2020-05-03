@@ -127,7 +127,7 @@ exports.handler = async (event, context, callback) => {
     try {
 
         /* Extract the gait cycle by finding acceleration measurements peaks */
-        const spikes = await slayer().fromArray(accelerations_x);
+        let spikes = await slayer().fromArray(accelerations_x);
         spikes = spikes.filter(item => item.y > 3); // filter all peaks less than 3 m/s^2
         if (spikes.length < event.MIN_GAIT_CYCLES) {
             const error = {
