@@ -122,11 +122,6 @@ class SensorsKit {
             });
         }
         const { sensorName, rawData, testID } = value;
-
-
-        /* cut the gait cycle from the raw data */
-
-
         try {
             const params = {
                 FunctionName: "complementaryFilter",
@@ -134,12 +129,15 @@ class SensorsKit {
                 Payload: JSON.stringify({
                     CALIBRATION_LENGTH: config.CALIBRATION_LENGTH,
                     SAMPLE_TIME: config.SAMPLE_TIME,
+                    MIN_GAIT_CYCLES: config.MIN_GAIT_CYCLES,
                     TEST_ID: testID,
                     SENSOR_NAME: sensorName,
                     RAW_DATA: rawData
                 })
             };
-            const response = await lambda.invoke(params).promise(); // Clean sensors noises & update the gait model DB
+            /* Detect the best gait cycle and makes calculations of accelerations, velocities and displacements */
+            const response = await lambda.invoke(params).promise();
+            
 
             return res.status(200).json({ sucess: true });
         } catch (ex) {
