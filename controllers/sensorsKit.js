@@ -124,7 +124,7 @@ class SensorsKit {
         const { sensorName, rawData, testID } = value;
         try {
             const params = {
-                FunctionName: "complementaryFilter",
+                FunctionName: "GaitCycleDetectionAndCalculations",
                 InvocationType: "RequestResponse",
                 Payload: JSON.stringify({
                     CALIBRATION_LENGTH: config.CALIBRATION_LENGTH,
