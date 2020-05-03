@@ -1,4 +1,5 @@
 const request = require('request-promise');
+const slayer = require('slayer');
 const AHRS = require('ahrs');
 const math = require('mathjs');
 const movingAvgFilter = require('./movingAvgFilter');
@@ -109,72 +110,100 @@ exports.handler = async (event, context, callback) => {
     const filteredAccelerations = movingAvgFilter(gravityRemoved);
 
     const accelerations = [];
-    const velocities = [];
-    const timeDelta = 1 / frequency;
-    let old_velocity_X = 0;
-    let old_velocity_Y = 0;
-    let old_velocity_Z = 0;
+    const accelerations_x = [];
 
-    /* Accelerations & Velocities calculations */
+    /* Save the acceleration in m/s^2 units */
     for (let filteredAcc of filteredAccelerations) {
         const index = filteredAcc.timeStamp;
-
-        /* Save the acceleration in m/s^2 units */
         accelerations.push({
             timeStamp: index,
             x: Number((filteredAcc.x * GRAVITY).toFixed(3)),
             y: Number((filteredAcc.y * GRAVITY).toFixed(3)),
             z: Number((filteredAcc.z * GRAVITY).toFixed(3))
         });
-
-        /* Calculating first integration to get the velocity in m/s units - velocity = old + a*dt */
-        old_velocity_X = Number((old_velocity_X + accelerations[index].x * timeDelta).toFixed(3));
-        old_velocity_Y = Number((old_velocity_Y + accelerations[index].y * timeDelta).toFixed(3));
-        old_velocity_Z = Number((old_velocity_Z + accelerations[index].z * timeDelta).toFixed(3));
-        velocities.push({
-            timeStamp: index,
-            x: old_velocity_X,
-            y: old_velocity_Y,
-            z: old_velocity_Z
-        });
+        accelerations_x.push(accelerations[index].x); // In order to detect the gait cycle
     }
-
-    let old_displacement_X = 0;
-    let old_displacement_Y = 0;
-    let old_displacement_Z = 0;
-    const displacements = [];
-
-    /* Calculating second integration to get the displacement in m units - displacement = old + v*dt */
-    for (let velocity of velocities) {
-        old_displacement_X = Number((old_displacement_X + velocity.x * timeDelta).toFixed(3));
-        old_displacement_Y = Number((old_displacement_Y + velocity.y * timeDelta).toFixed(3));
-        old_displacement_Z = Number((old_displacement_Z + velocity.z * timeDelta).toFixed(3));
-        displacements.push({
-            timeStamp: velocity.timeStamp,
-            x: old_displacement_X,
-            y: old_displacement_Y,
-            z: old_displacement_Z
-        });
-    }
-
-    const options = {
-        url: `${serverURL}/patientGaitModel/${event.TEST_ID}`,
-        headers: {
-            'Content-Type': 'application/json',
-            'x-auth-token': LAMBDA_SECRET
-        },
-        body: {
-            sensorName: event.SENSOR_NAME,
-            accelerations: accelerations,
-            velocities: velocities,
-            displacements: displacements
-        },
-        simple: true,
-        resolveWithFullResponse: true,
-        json: true
-    };
 
     try {
+
+        /* Extract the gait cycle by finding acceleration measurements peaks */
+        const spikes = await slayer().fromArray(accelerations_x);
+        spikes = spikes.filter(item => item.y > 3); // filter all peaks less than 3 m/s^2
+        if (spikes.length < event.MIN_GAIT_CYCLES) {
+            const error = {
+                statusCode: 400,
+                message: `You have to sample at least ${event.MIN_GAIT_CYCLES} gait cycles`
+            };
+            return callback(null, error);
+        }
+        const chosenCycleIndex = event.MIN_GAIT_CYCLES / 2;
+        const start = spikes[chosenCycleIndex].x - 30; // gait cycle start is the middle cycle
+        const end = spikes[chosenCycleIndex + 1].x + 3; // gait cycle end - the start of the next cycle
+        const cycle_accs = [];
+        let index = 0;
+        for (let i = start; i <= end; ++i) {
+            cycle_accs.push({
+                timeStamp: index++,
+                x: accelerations[i].x,
+                y: accelerations[i].y,
+                z: accelerations[i].z
+            });
+        }
+
+        const timeDelta = 1 / frequency;
+        const velocities = [];
+        let old_velocity_X = 0;
+        let old_velocity_Y = 0;
+        let old_velocity_Z = 0;
+
+        /* Calculating first integration to get the velocity in m/s units - velocity = old + a*dt */
+        for (let acc of cycle_accs) {
+            old_velocity_X = Number((old_velocity_X + acc.x * timeDelta).toFixed(3));
+            old_velocity_Y = Number((old_velocity_Y + acc.y * timeDelta).toFixed(3));
+            old_velocity_Z = Number((old_velocity_Z + acc.z * timeDelta).toFixed(3));
+            velocities.push({
+                timeStamp: acc.timeStamp,
+                x: old_velocity_X,
+                y: old_velocity_Y,
+                z: old_velocity_Z
+            });
+        }
+
+        let old_displacement_X = 0;
+        let old_displacement_Y = 0;
+        let old_displacement_Z = 0;
+        const displacements = [];
+
+        /* Calculating second integration to get the displacement in m units - displacement = old + v*dt */
+        for (let velocity of velocities) {
+            old_displacement_X = Number((old_displacement_X + velocity.x * timeDelta).toFixed(3));
+            old_displacement_Y = Number((old_displacement_Y + velocity.y * timeDelta).toFixed(3));
+            old_displacement_Z = Number((old_displacement_Z + velocity.z * timeDelta).toFixed(3));
+            displacements.push({
+                timeStamp: velocity.timeStamp,
+                x: old_displacement_X,
+                y: old_displacement_Y,
+                z: old_displacement_Z
+            });
+        }
+
+        /* Store the results into the application server */
+        const options = {
+            url: `${serverURL}/patientGaitModel/${event.TEST_ID}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'x-auth-token': LAMBDA_SECRET
+            },
+            body: {
+                sensorName: event.SENSOR_NAME,
+                accelerations: accelerations,
+                velocities: velocities,
+                displacements: displacements
+            },
+            simple: true,
+            resolveWithFullResponse: true,
+            json: true
+        };
         const response = await request.put(options);
         if (response.statusCode !== 200) {
             const error = {
@@ -195,4 +224,4 @@ exports.handler = async (event, context, callback) => {
         };
         return callback(null, error);
     }
-};
+}
