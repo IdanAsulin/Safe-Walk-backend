@@ -2,7 +2,6 @@
 #include <WiFiNINA.h>
 #include <Arduino_LSM6DS3.h>
 #include <avr/dtostrf.h>
-#include "wifi_secrets.h"
 
 WiFiServer server(80);
 
@@ -71,7 +70,7 @@ void loop() {
           client.println(F("Connection: keep-alive"));
           client.println();
           client.print(F("["));
-          while ((endTime - startTime) <= 10000) {
+          while ((endTime - startTime) <= 15000) {
             if (IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
               //              Serial.print(F("Sample has been taken -- "));
               //              Serial.println(index);
