@@ -127,8 +127,11 @@ exports.handler = async (event, context, callback) => {
     try {
 
         /* Extract the gait cycle by finding acceleration measurements peaks */
-        let spikes = await slayer().fromArray(accelerations_x);
-        spikes = spikes.filter(item => item.y > 4); // filter all peaks less than 3 m/s^2
+        const slayerOptions = {
+            minPeakHeight: 4.5, // filter all peaks less than 4.5 m/s^2 (treshold to identify start of a new gait cycle)
+            minPeakDistance: 100 // at least with 100 samples between peaks (treshold of the interval between cycles - helps us to ignore peaks in between cycles)
+        };
+        let spikes = await slayer(slayerOptions).fromArray(accelerations_x);
         if (spikes.length < event.MIN_GAIT_CYCLES) {
             const error = {
                 statusCode: 400,
@@ -136,8 +139,8 @@ exports.handler = async (event, context, callback) => {
             };
             return callback(null, error);
         }
-        const chosenCycleIndex = Math.floor(event.MIN_GAIT_CYCLES / 2);
-        const start = spikes[chosenCycleIndex].x - 30; // gait cycle start is the middle cycle
+        const chosenCycleIndex = Math.floor(event.MIN_GAIT_CYCLES / 2); // Choose the middle gait cycle
+        const start = spikes[chosenCycleIndex].x - 30; // 30 samples before the peak
         const end = spikes[chosenCycleIndex + 1].x + 3; // gait cycle end - the start of the next cycle
         const cycle_accs = [];
         let index = 0;
@@ -187,7 +190,7 @@ exports.handler = async (event, context, callback) => {
             });
         }
 
-        /* Store the results into the application server */
+        /* Send the results to the application server */
         const options = {
             url: `${serverURL}/patientGaitModel/${event.TEST_ID}`,
             headers: {
