@@ -199,7 +199,6 @@ class AbstractPlan {
             }
             if (videos && videos.length > 0 && this.planType === 'defaultPlan') {
                 const videoIDs = videos.map(video => video.videoID);
-                logger.info(videoIDs);
                 const videosDocs = await videoDao.find({ id: { $in: videoIDs } });
                 if (videosDocs.length !== videos.length) {
                     logger.warn(`User provided some videos which are not exist`);
