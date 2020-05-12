@@ -14,7 +14,7 @@ const logger = createLogger({
 });
 
 logger.stream = {
-    write: function (message, encoding) {
+    write: (message, encoding) => {
         logger.info(message);
     }
 };

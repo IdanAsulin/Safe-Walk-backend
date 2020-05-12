@@ -153,7 +153,12 @@ class AbstractPlan {
     editPlan = async (req, res) => {
         const schema = Joi.object({
             name: Joi.string(),
-            instructions: Joi.string()
+            instructions: Joi.string(),
+            videos: Joi.array().items({
+                videoID: Joi.string().required(),
+                times: Joi.number().min(1).required()
+            }),
+            therapistID: Joi.string()
         });
         const { error, value } = schema.validate(req.body);
         if (error) {
@@ -162,7 +167,7 @@ class AbstractPlan {
                 message: error.details[0].message
             });
         }
-        const { name, instructions } = value;
+        const { name, instructions, videos, therapistID } = value;
         try {
             const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument) {
@@ -171,7 +176,7 @@ class AbstractPlan {
                     message: `Not found`
                 });
             }
-            if (!name && !instructions) {
+            if (!name && !instructions && !videos && !therapistID) {
                 logger.warn(`User have to provide at least one parameter to update`);
                 return res.status(400).json({
                     message: `You have to provide at least one parameter to update`
@@ -181,6 +186,17 @@ class AbstractPlan {
                 planDocument.name = name;
             if (instructions)
                 planDocument.instructions = instructions;
+            if (therapistID)
+                planDocument.therapistID = therapistID;
+            if (videos && videos.length > 0 && this.planType === 'defaultPlan') {
+                planDocument.videos = videos;
+            }
+            if (videos && this.planType === 'rehabPlan') {
+                const videosToUpdate = [];
+                for (let video of videos)
+                    videosToUpdate.push({ ...video, done: false });
+                planDocument.videos = videosToUpdate;
+            }
             const response = await planDocument.save();
             redis.setex(`${this.planType}_${planDocument.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             redis.del(`all_${this.planType}`);
