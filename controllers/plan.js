@@ -187,7 +187,7 @@ class AbstractPlan {
             if (instructions)
                 planDocument.instructions = instructions;
             if (therapistID) {
-                const therapist = await therapist.findOne({ id: therapistID });
+                const therapist = await therapistDao.findOne({ id: therapistID });
                 if (!therapist) {
                     logger.warn(`User provided therapist ${therapistID} which is not exist`);
                     return res.status(400).json({
