@@ -158,7 +158,8 @@ class AbstractPlan {
                 videoID: Joi.string().required(),
                 times: Joi.number().min(1).required()
             }),
-            therapistID: Joi.string()
+            therapistID: Joi.string(),
+            defaultPlanIDs: Joi.array().items(Joi.string())
         });
         const { error, value } = schema.validate(req.body);
         if (error) {
@@ -167,7 +168,7 @@ class AbstractPlan {
                 message: error.details[0].message
             });
         }
-        const { name, instructions, videos, therapistID } = value;
+        const { name, instructions, videos, therapistID, defaultPlanIDs } = value;
         try {
             const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument) {
@@ -208,7 +209,7 @@ class AbstractPlan {
                 }
                 planDocument.videos = videos;
             }
-            if (videos && this.planType === 'rehabPlan') {
+            if (videos && videos.length > 0 && this.planType === 'rehabPlan') {
                 const videoIDs = videos.map(video => video.videoID);
                 const videosDocs = await videoDao.find({ id: { $in: videoIDs } });
                 if (videosDocs.length !== videos.length) {
@@ -220,6 +221,24 @@ class AbstractPlan {
                 const videosToUpdate = [];
                 for (let video of videos)
                     videosToUpdate.push({ ...video, done: false });
+                planDocument.videos = videosToUpdate;
+            }
+            if (defaultPlanIDs && defaultPlanIDs.length > 0 && this.planType === 'rehabPlan') {
+                const defaultPlans = await planDao.find({ id: { $in: defaultPlanIDs }, type: 'defaultPlan' });
+                if (defaultPlans.length !== defaultPlanIDs.length) {
+                    logger.warn(`User provided some default plans which are not exist`);
+                    return res.status(400).json({
+                        message: `You have to provide an exist default plans`
+                    });
+                }
+                const videosToUpdate = [...planDocument.videos];
+                for (let defaultPlan of defaultPlans)
+                    for (let video of defaultPlan.videos)
+                        videosToUpdate.push({
+                            videoID: video.videoID,
+                            times: video.times,
+                            done: false
+                        });
                 planDocument.videos = videosToUpdate;
             }
             const response = await planDocument.save();
