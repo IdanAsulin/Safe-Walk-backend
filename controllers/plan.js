@@ -186,8 +186,16 @@ class AbstractPlan {
                 planDocument.name = name;
             if (instructions)
                 planDocument.instructions = instructions;
-            if (therapistID)
+            if (therapistID) {
+                const therapist = await therapist.findOne({ id: therapistID });
+                if (!therapist) {
+                    logger.warn(`User provided therapist ${therapistID} which is not exist`);
+                    return res.status(400).json({
+                        message: `You have to provide an exist therapist`
+                    });
+                }
                 planDocument.therapistID = therapistID;
+            }
             if (videos && videos.length > 0 && this.planType === 'defaultPlan') {
                 planDocument.videos = videos;
             }
