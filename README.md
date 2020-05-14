@@ -98,4 +98,4 @@ This application deployed on an EC2 instance on AWS platform -
 
 * **Idan Asulin**
 * **Avraham Neeman**
-* **Yaniv Zipperfal**
+* **Yaniv Ziperfal**
