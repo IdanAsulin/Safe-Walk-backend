@@ -49,7 +49,7 @@ module.exports = {
     },
 
     blockNotTherapists(req, res, next) {
-        if (req.user.type !== 'therapist') {
+        if (req.headers['x-auth-token'] !== config.LAMBDA_SECRET_KEY && req.user.type !== 'therapist') {
             logger.warn(`User ${req.user.id} which is not a therapist was trying to access therapist's endpoint`);
             return res.status(401).json({
                 message: `Authorization denied`
