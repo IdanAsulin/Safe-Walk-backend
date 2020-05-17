@@ -132,20 +132,26 @@ class SensorsKit {
                     MIN_GAIT_CYCLES: config.MIN_GAIT_CYCLES,
                     TEST_ID: testID,
                     SENSOR_NAME: sensorName,
-                    RAW_DATA: rawData
+                    RAW_DATA: rawData,
+                    STD_DEVIATIONS_FACTOR: config.STD_DEVIATIONS_FACTOR
                 })
             };
-            /* Detect the best gait cycle and makes calculations of accelerations, velocities and displacements */
+            /* Detect the best gait cycle, makes calculations of accelerations, velocities and displacements and makes a decision if there is a gait cycle deviation  */
             const { Payload } = await lambda.invoke(params).promise();
             const response = JSON.parse(Payload);
             if (response.statusCode === 400) {
                 logger.warn(`The raw data contains less than ${config.MIN_GAIT_CYCLES} gait cycles`);
                 return res.status(400).json({
-                    message: `You have to sample at least 5 gait cycles`
+                    message: `You have to sample at least ${config.MIN_GAIT_CYCLES} gait cycles`
                 });
             }
-
-            return res.status(200).json({ sucess: true });
+            if (response.statusCode !== 200) {
+                logger.warn(`Error inside Lambda function: ${response.message}`);
+                return res.status(500).json({
+                    message: `Internal server error`
+                });
+            }
+            return res.status(200).json({ failureObserved: response.failureObserved });
         } catch (ex) {
             logger.error(`Error while trying to analyze raw data: ${ex.message}`);
             return res.status(500).json({
