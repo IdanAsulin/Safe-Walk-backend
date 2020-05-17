@@ -91,7 +91,7 @@ class Patient {
         }
         try {
             const patientDocument = await patientDao.findOne({ id: req.params.id });
-            redis.setex(`patient_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+            redis.setex(`patient_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(patientDocument));
             if (!patientDocument) {
                 logger.warn(`Patient ${req.params.id} was not found`);
                 return res.status(404).json({
@@ -107,7 +107,7 @@ class Patient {
                 let sensorsKit = await getFromRedis(`sensorsKit_${sensorsKitID}`);
                 if (!sensorsKit.found) {
                     sensorsKit = await sensorsKitDao.findOne({ id: sensorsKitID });
-                    redis.setex(`sensorsKit_${sensorsKitID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+                    redis.setex(`sensorsKit_${sensorsKitID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(sensorsKit));
                 }
                 else sensorsKit = sensorsKit.data;
                 const kitTaken = await patientDao.find({ sensorsKitID });
@@ -130,7 +130,7 @@ class Patient {
                 let rehabPlan = await getFromRedis(`rehabPlan_${rehabPlanID}`);
                 if (!rehabPlan.found) {
                     rehabPlan = await planDao.findOne({ id: rehabPlanID, type: 'rehabPlan' });
-                    redis.setex(`rehabPlan_${rehabPlanID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
+                    redis.setex(`rehabPlan_${rehabPlanID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(rehabPlan));
                 }
                 else rehabPlan = rehabPlan.data;
                 const planTaken = await patientDao.find({ rehabPlanID: rehabPlanID });
