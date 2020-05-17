@@ -19,6 +19,7 @@ module.exports = {
             });
         }
         try {
+            if (token === config.LAMBDA_SECRET_KEY) return next();
             const decoded = jwt.verify(token, config.JWT_SECRET);
             req.user = decoded.user;
             next();
