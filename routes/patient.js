@@ -10,6 +10,5 @@ router.post('/', blockNotTherapists, patient.createPatient);
 router.put('/:id', blockNotTherapists, patient.editPatient);
 router.get('/', [blockNotTherapists, (req, res, next) => checkInCache(req, res, next, 'all_patients')], patient.getAllPatients);
 router.get('/:id', (req, res, next) => checkInCache(req, res, next, `patient_${req.params.id}`), patient.getPatientByID);
-router.put('/:id/test', blockNotPatients, patient.addTest);
 
 module.exports = router;

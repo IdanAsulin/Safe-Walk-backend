@@ -134,6 +134,7 @@ class AbstractPlan {
             if (this.planType === 'rehabPlan') {
                 let patientDoc = await patientDao.findOne({ id: patientID });
                 patientDoc.rehabPlanID = response.id;
+                patientDoc.waitForPlan = false;
                 await patientDoc.save();
                 redis.setex(`patient_${patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(patientDoc));
                 redis.del(`all_patients`);

@@ -25,10 +25,6 @@ const patientSchema = new Schema({
         enum: ['male', 'female'],
         required: true
     },
-    testsList: [{
-        type: String,
-        default: []
-    }],
     waitForPlan: { type: Boolean, default: false },
     rehabPlanID: { type: String, default: "" },
     sensorsKitID: { type: String, required: true }
