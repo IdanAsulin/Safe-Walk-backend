@@ -158,7 +158,7 @@ class AbstractPlan {
             videos: Joi.array().items({
                 videoID: Joi.string().required(),
                 times: Joi.number().min(1).required()
-            }),
+            }).min(1),
             therapistID: Joi.string(),
             defaultPlanIDs: Joi.array().items(Joi.string())
         });
