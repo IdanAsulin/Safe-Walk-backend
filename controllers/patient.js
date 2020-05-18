@@ -17,8 +17,7 @@ class Patient {
             picture: Joi.string().uri().required(),
             phoneNumber: Joi.string().min(10).required(),
             age: Joi.number().min(0).max(120).required(),
-            gender: Joi.string().valid('male', 'female').required(),
-            sensorsKitID: Joi.string().required()
+            gender: Joi.string().valid('male', 'female').required()
         });
         const { error, value } = schema.validate(req.body);
         if (error) {
@@ -27,10 +26,15 @@ class Patient {
                 message: error.details[0].message
             });
         }
-        let { name, mail, password, picture, phoneNumber, age, gender, sensorsKitID } = value;
+        let { name, mail, password, picture, phoneNumber, age, gender } = value;
         try {
             const salt = await bcrypt.genSalt(10);
             password = await bcrypt.hash(password, salt);
+            const newSensorsKit = new sensorsKitDao();
+            const sensorKit = await newSensorsKit.save();
+            const sensorsKitID = sensorKit.id;
+            redis.setex(`sensorsKit_${sensorsKitID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(sensorKit));
+            redis.del(`all_sensorsKit`);
             const newPatient = new patientDao({ name, mail, password, picture, phoneNumber, age, gender, sensorsKitID });
             let response = await patientDao.findOne({ mail });
             if (response) {

@@ -13,22 +13,6 @@ AWS.config.update({
 const lambda = new AWS.Lambda();
 
 class SensorsKit {
-    createKit = async (req, res) => {
-        try {
-            const newSensorsKit = new sensorsKitDao();
-            const response = await newSensorsKit.save();
-            redis.setex(`sensorsKit_${response.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
-            redis.del(`all_sensorsKit`);
-            logger.info(`Sensors kit was created succesfully- sensorKitID: ${response.id}`);
-            return res.status(201).json(response);
-        } catch (err) {
-            logger.error(`Error while trying to create new sensors kit: ${err.message}`);
-            return res.status(500).json({
-                message: err.message
-            });
-        }
-    }
-
     getAllKits = async (req, res) => {
         try {
             const response = await sensorsKitDao.find().select('-_id').select('-__v');

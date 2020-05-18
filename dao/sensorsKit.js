@@ -10,10 +10,6 @@ const sensorsKitSchema = new Schema({
         type: String,
         default: uuidv4
     },
-    patientID: {
-        type: String,
-        default: ""
-    },
     IPs: {
         sensor1: {
             type: String,
