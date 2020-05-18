@@ -1,0 +1,4 @@
+#define WIFI_NAME "WIFI NETWORK NMAE"
+#define WIFI_PASS "WIFI NETWORK PASSWORD"
+#define KIT_ID "24939e89-7aef-4d3d-978b-73b63fd4e7d2"
+#define SENSOR_NAME "sensor1"

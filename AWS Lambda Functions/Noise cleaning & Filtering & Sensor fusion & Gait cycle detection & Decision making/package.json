@@ -10,8 +10,10 @@
   "license": "ISC",
   "dependencies": {
     "ahrs": "^1.2.2",
+    "dynamic-time-warping": "^1.0.0",
     "mathjs": "^6.6.2",
     "request": "^2.88.2",
-    "request-promise": "^4.2.5"
+    "request-promise": "^4.2.5",
+    "slayer": "^1.0.1"
   }
 }

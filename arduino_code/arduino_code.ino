@@ -2,6 +2,7 @@
 #include <WiFiNINA.h>
 #include <Arduino_LSM6DS3.h>
 #include <avr/dtostrf.h>
+#include "config.h"
 
 WiFiServer server(80);
 
@@ -12,8 +13,8 @@ String toString(const IPAddress& address) {
 void updateIpInServer(char* localIP) {
   if (WiFi.status() == WL_CONNECTED) {
 #define serverIP "3.89.190.108"
-    String sensorName = F("sensor1");
-    String kitID = F("2e218b37-1807-4a7d-b498-9320427b693a");
+    String sensorName = SENSOR_NAME;
+    String kitID = KIT_ID;
     WiFiClient client;
     if (client.connect(serverIP, 3000)) {
       String jsonBody = "{\"sensor\":\"" + sensorName + "\",\"ip\":\"" + localIP + "\"}";
@@ -41,7 +42,7 @@ void setup() {
   int status = WL_IDLE_STATUS;
   while (status != WL_CONNECTED) {
     //    Serial.println(F("Attempting to connect to WIFI"));
-    status = WiFi.begin(SECRET_SSID, SECRET_PASS);
+    status = WiFi.begin(WIFI_NAME, WIFI_PASS);
   }
   char localIP[18];
   sprintf(localIP, "%s", toString(WiFi.localIP()).c_str());
