@@ -83,7 +83,6 @@ class SensorsKit {
         }
     }
 
-    // TODO::
     analyzeRawData = async (req, res) => {
         const schema = Joi.object({
             rawData: Joi.array().items({
@@ -121,7 +120,7 @@ class SensorsKit {
                     PATIENT_ID: req.user.id
                 })
             };
-            /* Detect the best gait cycle, makes calculations of accelerations, velocities and displacements and makes a decision if there is a gait cycle deviation  */
+            /* Detect the best gait cycle, makes calculations of accelerations, velocities and displacements and makes a decision if there is a gait cycle deviation, lambda is also stores the relvant data in the DB  */
             const { Payload } = await lambda.invoke(params).promise();
             const response = JSON.parse(Payload);
             if (response.statusCode === 400) {
