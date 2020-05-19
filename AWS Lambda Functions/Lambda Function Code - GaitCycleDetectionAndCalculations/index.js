@@ -5,8 +5,8 @@ const math = require('mathjs');
 const DynamicTimeWarping = require('dynamic-time-warping');
 const movingAvgFilter = require('./movingAvgFilter');
 const sensorCalibration = require('./sensorCalibration');
-const normalThighCycle = require('./normal_thigh_cycle.json');
-const thighStdDeviations = require('./thigh_standard_deviations.json');
+const normalThighCycle = require('./normal_gait_data/right_thigh/normal_cycle.json');
+const thighStdDeviations = require('./normal_gait_data/right_thigh/standard_deviations.json');
 
 const serverURL = "http://ec2-3-89-190-108.compute-1.amazonaws.com:3000/api";
 const LAMBDA_SECRET = 'YanIv_!2#4IdaN__--AvI';
