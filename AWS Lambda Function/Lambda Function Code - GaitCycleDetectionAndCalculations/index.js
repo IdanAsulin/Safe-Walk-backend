@@ -264,7 +264,8 @@ exports.handler = async (event, context, callback) => {
                 sensorName: event.SENSOR_NAME,
                 accelerations: cycle_accs,
                 velocities: velocities,
-                displacements: displacements
+                displacements: displacements,
+                report: report
             },
             simple: true,
             resolveWithFullResponse: true,
@@ -281,8 +282,7 @@ exports.handler = async (event, context, callback) => {
 
         const success = {
             statusCode: 200,
-            failureObserved: failureObserved,
-            report: report
+            failureObserved: failureObserved
         };
         return callback(null, success);
     } catch (ex) {
