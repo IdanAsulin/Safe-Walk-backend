@@ -1,8 +1,9 @@
 # Safe Walk - Back-End
 
-![Image description](https://github.com/IdanAsulin/Safe-Walk-backend/blob/master/Images/Main%20algorithm%20flow%20chart.png)
-
 Software Engineering final project - This repository contains a Node.js application. This application was built as RESTFUL API service which serves our client sides (Admin dashboard & Client mobile application) 
+
+## The Main Workflow
+![Image description](https://github.com/IdanAsulin/Safe-Walk-backend/blob/master/Images/Main%20workflow%20diagram.png)
 
 ## Getting Started
 
