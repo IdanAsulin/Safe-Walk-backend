@@ -5,8 +5,6 @@ const math = require('mathjs');
 const DynamicTimeWarping = require('dynamic-time-warping');
 const movingAvgFilter = require('./movingAvgFilter');
 const sensorCalibration = require('./sensorCalibration');
-const normalThighCycle = require('./normal_gait_data/right_thigh/normal_cycle.json');
-const thighStdDeviations = require('./normal_gait_data/right_thigh/standard_deviations.json');
 
 const serverURL = "http://ec2-3-89-190-108.compute-1.amazonaws.com:3000/api";
 const LAMBDA_SECRET = 'YanIv_!2#4IdaN__--AvI';
@@ -128,7 +126,6 @@ exports.handler = async (event, context, callback) => {
     }
 
     try {
-
         /* Extracting the gait cycle by finding acceleration measurements peaks on the x axis */
         const slayerOptions = {
             minPeakHeight: 4.5, // filter all peaks less than 4.5 m/s^2 (treshold to identify start of a new gait cycle)
@@ -138,7 +135,7 @@ exports.handler = async (event, context, callback) => {
         if (spikes.length < event.MIN_GAIT_CYCLES) {
             const error = {
                 statusCode: 400,
-                message: `You have to sample at least ${event.MIN_GAIT_CYCLES} gait cycles`
+                message: `You have to sample at least ${event.MIN_GAIT_CYCLES * 2} steps`
             };
             return callback(null, error);
         }
@@ -193,17 +190,31 @@ exports.handler = async (event, context, callback) => {
             });
         }
 
+        /* Getting the proper data by the sensor location */
+        let normalCycle, stdDeviations, start_hill_strike, end_hill_strike, start_mid_stance, end_mid_stance, start_toe_off, end_toe_off;
+        switch (event.SENSOR_NAME) {
+            case 'sensor1': // right thigh
+                normalCycle = require('./normal_gait_data/right_thigh/normal_cycle.json');
+                stdDeviations = require('./normal_gait_data/right_thigh/standard_deviations.json');
+                /* Important stages of the gait cycles - the numbers represents the index of them inside the normal cycle */
+                start_hill_strike = 18, end_hill_strike = 20, start_mid_stance = 35, end_mid_stance = 38, start_toe_off = 44, end_toe_off = 46;
+                break;
+            case 'sensor2': // left thigh
+                normalCycle = require('./normal_gait_data/left_thigh/normal_cycle.json');
+                stdDeviations = require('./normal_gait_data/left_thigh/standard_deviations.json');
+                /* Important stages of the gait cycles - the numbers represents the index of them inside the normal cycle */
+                start_hill_strike = 21, end_hill_strike = 24, start_mid_stance = 36, end_mid_stance = 38, start_toe_off = 41, end_toe_off = 43;
+                break;
+        }
+
         /* Checking for similarity between the normal measurements to the abnormal ones */
         const distFunc = (a, b) => {
             return Math.abs(a - b.x);
         };
 
-        const dtw = new DynamicTimeWarping(normalThighCycle, cycle_accs, distFunc);
+        const dtw = new DynamicTimeWarping(normalCycle, cycle_accs, distFunc);
         const dist = dtw.getDistance();
         const path = dtw.getPath(); // Returns match between points in the normal cycle and the sampled one
-
-        /* Important stages of the gait cycles - the numbers represents the index of them inside the normal cycle */
-        const start_hill_strike = 18, end_hill_strike = 20, start_mid_stance = 35, end_mid_stance = 38, start_toe_off = 44, end_toe_off = 46;
         let report = '';
 
         /* Detecting failures in the patient's gait cycle */
@@ -213,8 +224,8 @@ exports.handler = async (event, context, callback) => {
             if (normal_cycle_index < 10 || normal_cycle_index > 137) continue; // Skipping the first and the last samples which are pre & post the gait cycle
             const sample_index = path[i][1];
             if (gaitExceptions.indexOf(sample_index) !== -1) continue; // Skipping exceptions which already have been detected
-            const difference = distFunc(normalThighCycle[normal_cycle_index], cycle_accs[sample_index]);
-            const stdDeviation = thighStdDeviations[normal_cycle_index];
+            const difference = distFunc(normalCycle[normal_cycle_index], cycle_accs[sample_index]);
+            const stdDeviation = stdDeviations[normal_cycle_index];
             const failureRate = event.STD_DEVIATIONS_FACTOR * stdDeviation;
             if (difference > failureRate) {
                 gaitExceptions.push(sample_index);
@@ -242,7 +253,7 @@ exports.handler = async (event, context, callback) => {
         else
             report = `No gait pattern failures have been detected`;
 
-        /* Send the results to the application server */
+        /* Storing the graphs data into DB */
         let options = {
             url: `${serverURL}/patientGaitModel/${event.TEST_ID}`,
             headers: {
@@ -268,7 +279,6 @@ exports.handler = async (event, context, callback) => {
             return callback(null, error);
         }
 
-
         /* Update the test entity */
         options.url = `${serverURL}/test/${event.TEST_ID}`;
         options.body = {
@@ -283,18 +293,17 @@ exports.handler = async (event, context, callback) => {
             };
             return callback(null, error);
         }
+        
         /* Update the patient entity */
-        if (failureObserved) {
-            options.url = `${serverURL}/patient/${event.PATIENT_ID}`;
-            options.body = { waitForPlan: true };
-            response = await request.put(options);
-            if (response.statusCode !== 200) {
-                const error = {
-                    statusCode: response.statusCode,
-                    message: response.body
-                };
-                return callback(null, error);
-            }
+        options.url = `${serverURL}/patient/${event.PATIENT_ID}`;
+        options.body = { waitForPlan: true };
+        response = await request.put(options);
+        if (response.statusCode !== 200) {
+            const error = {
+                statusCode: response.statusCode,
+                message: response.body
+            };
+            return callback(null, error);
         }
         const success = {
             statusCode: 200,
