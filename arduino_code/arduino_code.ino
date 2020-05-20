@@ -71,7 +71,7 @@ void loop() {
           client.println(F("Connection: keep-alive"));
           client.println();
           client.print(F("["));
-          while ((endTime - startTime) <= 15000) {
+          while ((endTime - startTime) <= SAMPLE_TIME) {
             if (IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
               //              Serial.print(F("Sample has been taken -- "));
               //              Serial.println(index);
