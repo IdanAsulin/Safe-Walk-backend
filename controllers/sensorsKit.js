@@ -116,8 +116,7 @@ class SensorsKit {
                     TEST_ID: testID,
                     SENSOR_NAME: sensorName,
                     RAW_DATA: rawData,
-                    STD_DEVIATIONS_FACTOR: config.STD_DEVIATIONS_FACTOR,
-                    PATIENT_ID: req.user.id
+                    STD_DEVIATIONS_FACTOR: config.STD_DEVIATIONS_FACTOR
                 })
             };
             /* Detect the best gait cycle, makes calculations of accelerations, velocities and displacements and makes a decision if there is a gait cycle deviation, lambda is also stores the relvant data in the DB  */
