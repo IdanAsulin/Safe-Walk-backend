@@ -279,32 +279,6 @@ exports.handler = async (event, context, callback) => {
             return callback(null, error);
         }
 
-        /* Update the test entity */
-        options.url = `${serverURL}/test/${event.TEST_ID}`;
-        options.body = {
-            abnormality: failureObserved,
-            detailedDiagnostic: report
-        };
-        response = await request.put(options);
-        if (response.statusCode !== 200) {
-            const error = {
-                statusCode: response.statusCode,
-                message: response.body
-            };
-            return callback(null, error);
-        }
-        
-        /* Update the patient entity */
-        options.url = `${serverURL}/patient/${event.PATIENT_ID}`;
-        options.body = { waitForPlan: true };
-        response = await request.put(options);
-        if (response.statusCode !== 200) {
-            const error = {
-                statusCode: response.statusCode,
-                message: response.body
-            };
-            return callback(null, error);
-        }
         const success = {
             statusCode: 200,
             failureObserved: failureObserved,
