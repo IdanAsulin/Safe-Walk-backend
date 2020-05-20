@@ -16,4 +16,4 @@ Finally that Lambda will output 2 things:<br/>
 
 ## Gait calculations utils for internal use
 
-This fo;der contains a script to calculate the normal gait model. In addition you will find a JSON file contains samples of gait cycle (only vertical axis)
+This folder contains a script to calculate the normal gait model. In addition you will find a JSON file contains samples of gait cycle used to calculate the normal model (only vertical (X) axis)
