@@ -88,13 +88,17 @@ This application deployed on an EC2 instance on AWS platform -
 ## Built With
 
 * [Node.js](http://www.dropwizard.io/1.0.2/docs/) - Programming language
-* [C++](http://www.cplusplus.com/) - Programming language used for Arduino
-* [NPM](https://www.npmjs.com/) - Dependency Management
+* [C++](http://www.cplusplus.com/) - Programming language used for Arduino embedded code
 * [AWS Lambda Functions](https://docs.aws.amazon.com/lambda/index.html) - Heavy computations made with Serverless technology
+* [AWS EC2](https://aws.amazon.com/ec2/) - Application server
 * [Redis](https://redis.io) - Cache mechanism
 * [Express](https://expressjs.com/) - Web framework
-* [Mongo DB](https://www.mongodb.com/) - Database
+* [PM2](https://pm2.keymetrics.io/) - Process manager
+* [Dynamic time warping](https://www.npmjs.com/package/dynamic-time-warping) - Algorithm used for detection of differences between time sequences
+* [Mongo DB](https://www.mongodb.com/) - Application database
 * [Winston](https://github.com/winstonjs/winston) - Logs management
+* [Slayer](https://www.npmjs.com/package/slayer) - Algorithm used for detection of peaks in a time sequence
+* [AHRS - Madgwick](https://www.npmjs.com/package/ahrs) - Sensor fusion
 * [JWT](https://www.npmjs.com/package/jsonwebtoken) - Token based authentication management
 * [Arduino Nano 33 IOT](https://store.arduino.cc/arduino-nano-33-iot) - Computing unit with an IMU sensor for human walking measurement
 
