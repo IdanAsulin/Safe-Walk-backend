@@ -99,15 +99,14 @@ class Test {
     }
 
     editTest = async (req, res) => {
-        if (!req.body.abnormality && !req.body.detailedDiagnostic) {
-            logger.warn(`User did not provide any parameter to update`);
+        if (!req.body.abnormality) {
+            logger.warn(`User did not provide any parameter to be updated`);
             return res.status(400).json({
-                message: `You must provide at least abnormality or detailedDiagnostic`
+                message: `You must provide abnormality status`
             });
         }
         const schema = Joi.object({
-            abnormality: Joi.bool().optional(),
-            detailedDiagnostic: Joi.string().optional()
+            abnormality: Joi.bool().optional()
         });
         const { error, value } = schema.validate(req.body);
         if (error) {
@@ -116,7 +115,7 @@ class Test {
                 message: error.details[0].message
             });
         }
-        const { abnormality, detailedDiagnostic } = value;
+        const { abnormality } = value;
         try {
             let testDocument = await testDao.findOne({ id: req.params.id });
             if (!testDocument) {
@@ -132,8 +131,6 @@ class Test {
                 await patient.save();
                 redis.setex(`patient_${testDocument.patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(patient));
             }
-            if (detailedDiagnostic)
-                testDocument.detailedDiagnostic = detailedDiagnostic;
             const response = await testDocument.save();
             redis.setex(`test_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(testDocument));
             redis.del(`all_tests`);

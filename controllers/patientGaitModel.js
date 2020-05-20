@@ -69,7 +69,8 @@ class PatientGaitModel {
             sensorName: Joi.string().valid('sensor1', 'sensor2', 'sensor3', 'sensor4', 'sensor5', 'sensor6', 'sensor7').required(),
             accelerations: rawDataJoi,
             velocities: rawDataJoi,
-            displacements: rawDataJoi
+            displacements: rawDataJoi,
+            report: Joi.string().required()
         });
         const { error, value } = schema.validate(req.body);
         if (error) {
@@ -80,7 +81,7 @@ class PatientGaitModel {
         }
         try {
             const testID = req.params.testID;
-            const { sensorName, accelerations, velocities, displacements } = value;
+            const { sensorName, accelerations, velocities, displacements, report } = value;
             let model = await patientGaitModelDao.findOne({ testID });
             redis.setex(`gaitModel_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(model));
             if (!model) {
@@ -104,6 +105,7 @@ class PatientGaitModel {
             model[sensorName].accelerations = accelerations;
             model[sensorName].velocities = velocities;
             model[sensorName].displacements = displacements;
+            model[sensorName].report = report;
             const response = await model.save();
             redis.setex(`gaitModel_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             logger.info(`Patient gait model for test ${testID} updated successfully`);

@@ -16,10 +16,6 @@ const testSchema = new Schema({
     abnormality: {
         type: Boolean,
         default: false
-    },
-    detailedDiagnostic: {
-        type: String,
-        default: `Waiting for the therapist's update`
     }
 });
 

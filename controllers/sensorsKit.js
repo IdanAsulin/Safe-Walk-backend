@@ -2,6 +2,8 @@ const Joi = require('joi');
 const AWS = require('aws-sdk');
 const redis = require('../redisConnection');
 const sensorsKitDao = require('../dao/sensorsKit');
+const patientDao = require('../dao/patient');
+const testDao = require('../dao/test');
 const logger = require('../logger');
 const config = require('../config.json');
 
