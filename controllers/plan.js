@@ -38,8 +38,8 @@ class AbstractPlan {
                 videos: Joi.array().items({
                     videoID: Joi.string().required(),
                     times: Joi.number().min(1).required()
-                }).min(1).required(),
-                defaultPlans: Joi.array().items(Joi.string()).min(1)
+                }).required(),
+                defaultPlans: Joi.array().items(Joi.string())
             });
         }
         const { error, value } = schema.validate(req.body);
