@@ -2,6 +2,7 @@ const Joi = require('joi');
 const redis = require('../redisConnection');
 const AbstractPlan = require('./plan');
 const planDao = require('../dao/plan');
+const patientDao = require('../dao/patient');
 const utils = require('../utils');
 const logger = require('../logger');
 const config = require('../config.json');
@@ -147,8 +148,17 @@ class RehabPlan extends AbstractPlan {
                 if (planDocument.videos[index].videoID === videoID) {
                     if (planDocument.videos[index].timesLeft > 0)
                         planDocument.videos[index].timesLeft--;
-                    if (planDocument.videos[index].timesLeft === 0)
+                    if (planDocument.videos[index].timesLeft === 0) {
                         planDocument.videos[index].done = true;
+                        const finishedExercises = planDocument.videos.filter(video => video.done === true);
+                        if (finishedExercises.length === planDocument.videos.length) {
+                            const patientDoc = await patientDao.findOne({ id: planDocument.patientID });
+                            redis.del(`all_patients`);
+                            redis.setex(`patient_${planDocument.patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(patientDoc));
+                            patientDoc.rehabPlanID = "";
+                            await patientDoc.save();
+                        }
+                    }
                     flag = true;
                     break;
                 }
