@@ -39,7 +39,8 @@ class AbstractPlan {
                     videoID: Joi.string().required(),
                     times: Joi.number().min(1).required()
                 }).required(),
-                defaultPlans: Joi.array().items(Joi.string())
+                defaultPlans: Joi.array().items(Joi.string()),
+                therapistID: Joi.string()
             });
         }
         const { error, value } = schema.validate(req.body);
