@@ -106,7 +106,7 @@ class AbstractPlan {
                     videos = videos.concat(defaultPlanVideos);
                 }
                 for (let index = 0; index < videos.length; index++)
-                    videos[index] = { ...videos[index], done: false };
+                    videos[index] = { ...videos[index], timesLeft: videos[index].times, done: false };
             }
             let videoIDs = [];
             for (let video of videos)

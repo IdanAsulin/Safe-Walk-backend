@@ -16,7 +16,8 @@ const planSchema = new Schema({
     videos: {
         type: [{
             videoID: { type: String, required: true },
-            times: { type: Number, default: 1, min: 0 },
+            times: { type: Number, default: 1, min: 1 },
+            timesLeft: { type: Number, default: 0, min: 0 },
             done: { type: Boolean }
         }]
     },
