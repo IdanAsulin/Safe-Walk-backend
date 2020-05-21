@@ -102,64 +102,11 @@ class PatientGaitModel {
                     message: "The test you are trying to update was not found"
                 });
             }
+            
             model[sensorName].accelerations = accelerations;
             model[sensorName].velocities = velocities;
             model[sensorName].displacements = displacements;
             model[sensorName].report = report;
-
-            const newAcc = [], newVel = [], newDis = [];
-            for (let i = 0; i < accelerations.length; ++i) {
-                newAcc.push({
-                    timeStamp: i,
-                    x: accelerations[i].x * Math.random() * 5,
-                    y: accelerations[i].y * Math.random() * 5,
-                    z: accelerations[i].z * Math.random() * 5
-                });
-                newVel.push({
-                    timeStamp: i,
-                    x: velocities[i].x * Math.random() * 5,
-                    y: velocities[i].y * Math.random() * 5,
-                    z: velocities[i].z * Math.random() * 5
-                });
-                newDis.push({
-                    timeStamp: i,
-                    x: displacements[i].x * Math.random() * 5,
-                    y: displacements[i].y * Math.random() * 5,
-                    z: displacements[i].z * Math.random() * 5
-                });
-            }
-            model['sensor2'].accelerations = newAcc;
-            model['sensor2'].velocities = newVel;
-            model['sensor2'].displacements = newDis;
-            model['sensor2'].report = report;
-
-            const newAcc1 = [], newVel1 = [], newDis1 = [];
-            for (let i = 0; i < accelerations.length; ++i) {
-                newAcc1.push({
-                    timeStamp: i,
-                    x: accelerations[i].x * Math.random() * 5,
-                    y: accelerations[i].y * Math.random() * 5,
-                    z: accelerations[i].z * Math.random() * 5
-                });
-                newVel1.push({
-                    timeStamp: i,
-                    x: velocities[i].x * Math.random() * 5,
-                    y: velocities[i].y * Math.random() * 5,
-                    z: velocities[i].z * Math.random() * 5
-                });
-                newDis1.push({
-                    timeStamp: i,
-                    x: displacements[i].x * Math.random() * 5,
-                    y: displacements[i].y * Math.random() * 5,
-                    z: displacements[i].z * Math.random() * 5
-                });
-            }
-
-            model['sensor3'].accelerations = newAcc1;
-            model['sensor3'].velocities = newVel1;
-            model['sensor3'].displacements = newDis1;
-            model['sensor3'].report = report;
-
 
             const response = await model.save();
             redis.setex(`gaitModel_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
