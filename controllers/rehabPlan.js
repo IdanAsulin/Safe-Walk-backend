@@ -44,6 +44,7 @@ class RehabPlan extends AbstractPlan {
                     videosTonsert.push({
                         videoID: video.videoID,
                         times: video.times,
+                        timesLeft: video.times,
                         done: false
                     });
             if (utils.checkForDuplicates(videosTonsert, 'videoID')) {
@@ -144,9 +145,9 @@ class RehabPlan extends AbstractPlan {
             let flag = false;
             for (let index = 0; index < planDocument.videos.length; index++) {
                 if (planDocument.videos[index].videoID === videoID) {
-                    if (planDocument.videos[index].times > 0)
-                        planDocument.videos[index].times--;
-                    if (planDocument.videos[index].times === 0)
+                    if (planDocument.videos[index].timesLeft > 0)
+                        planDocument.videos[index].timesLeft--;
+                    if (planDocument.videos[index].timesLeft === 0)
                         planDocument.videos[index].done = true;
                     flag = true;
                     break;

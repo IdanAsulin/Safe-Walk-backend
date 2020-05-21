@@ -50,12 +50,11 @@ class AbstractPlan {
                 message: error.details[0].message
             });
         }
-        let { name, instructions, videos } = value;
+        let { name, instructions, videos, therapistID } = value;
         let patientID, therapistID, defaultPlans;
         const type = this.planType;
         if (this.planType === 'rehabPlan') {
             defaultPlans = value.defaultPlans;
-            therapistID = req.user.id;
             patientID = value.patientID;
         }
         try {
@@ -220,7 +219,7 @@ class AbstractPlan {
                 }
                 const videosToUpdate = [];
                 for (let video of videos)
-                    videosToUpdate.push({ ...video, done: false });
+                    videosToUpdate.push({ ...video, timesLeft: video.times, done: false });
                 planDocument.videos = videosToUpdate;
             }
             if (defaultPlanIDs && defaultPlanIDs.length > 0 && this.planType === 'rehabPlan') {
@@ -237,6 +236,7 @@ class AbstractPlan {
                         videosToUpdate.push({
                             videoID: video.videoID,
                             times: video.times,
+                            timesLeft: video.times,
                             done: false
                         });
                 planDocument.videos = videosToUpdate;
@@ -354,7 +354,7 @@ class AbstractPlan {
             }
             if (this.planType === 'rehabPlan') {
                 for (let index = 0; index < videos.length; index++)
-                    videos[index] = { ...videos[index], done: false };
+                    videos[index] = { ...videos[index], timesLeft: videos[index].times, done: false };
             }
             planDocument.videos = planDocument.videos.concat(videos);
             if (utils.checkForDuplicates(planDocument.videos, 'videoID')) {
