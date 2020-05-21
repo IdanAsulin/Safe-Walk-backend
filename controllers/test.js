@@ -99,14 +99,8 @@ class Test {
     }
 
     editTest = async (req, res) => {
-        if (!req.body.abnormality) {
-            logger.warn(`User did not provide any parameter to be updated`);
-            return res.status(400).json({
-                message: `You must provide abnormality status`
-            });
-        }
         const schema = Joi.object({
-            abnormality: Joi.bool().optional()
+            abnormality: Joi.bool().required()
         });
         const { error, value } = schema.validate(req.body);
         if (error) {
