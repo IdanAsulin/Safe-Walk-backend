@@ -51,7 +51,7 @@ class AbstractPlan {
             });
         }
         let { name, instructions, videos, therapistID } = value;
-        let patientID, therapistID, defaultPlans;
+        let patientID, defaultPlans;
         const type = this.planType;
         if (this.planType === 'rehabPlan') {
             defaultPlans = value.defaultPlans;
