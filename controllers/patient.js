@@ -87,7 +87,7 @@ class Patient {
             });
         }
         let { name, picture, phoneNumber, age, gender, sensorsKitID, waitForPlan, rehabPlanID } = value;
-        if (!name && !picture && !phoneNumber && !age && !gender && !sensorsKitID && !waitForPlan && !rehabPlanID) {
+        if (!name && !picture && !phoneNumber && !age && !gender && !sensorsKitID && waitForPlan !== true && waitForPlan !== false && !rehabPlanID) {
             logger.warn(`User did not provide any parameter to update`);
             return res.status(400).json({
                 message: `You must provide at least one parameter to update`
