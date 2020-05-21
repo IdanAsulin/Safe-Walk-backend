@@ -14,7 +14,7 @@ const sensorData = {
     accelerations: { type: [rawDataStructure], default: [] },
     velocities: { type: [rawDataStructure], default: [] },
     displacements: { type: [rawDataStructure], default: [] },
-    report: { type: String, default: "Waiting for the therapist's update" }
+    report: { type: String, default: "Nothing to show at this moment" }
 };
 
 const patientGaitModelSchema = new Schema({
