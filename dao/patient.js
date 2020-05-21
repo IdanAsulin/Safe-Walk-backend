@@ -30,4 +30,4 @@ const patientSchema = new Schema({
     sensorsKitID: { type: String, required: true }
 });
 
-module.exports = mongoose.model('patient', patientSchema);
+module.exports = mongoose.model('patient', patientSchema)
