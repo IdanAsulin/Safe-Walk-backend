@@ -137,6 +137,22 @@ class Test {
             });
         }
     }
+
+    removeTest = async (req, res) => {
+        try {
+            const response = await testDao.findOneAndRemove({ id: req.params.id });
+            redis.del(`test_${req.params.id}`);
+            redis.del(`all_tests`);
+            logger.info(`Test ${req.params.id} was successfully removed`);
+            if (response) return res.status(200).json();
+            return res.status(202).json();
+        } catch (ex) {
+            logger.error(`Error while trying to remove test - ${req.params.id}: ${ex.message}`);
+            return res.status(500).json({
+                message: 'Internal server error'
+            });
+        }
+    }
 }
 
 module.exports = Test;

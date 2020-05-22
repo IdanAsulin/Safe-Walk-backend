@@ -11,5 +11,6 @@ router.get('/', [blockNotTherapists, (req, res, next) => checkInCache(req, res, 
 router.get('/:id', (req, res, next) => checkInCache(req, res, next, `test_${req.params.id}`), test.getTestByID);
 router.get('/patient/:patientID', test.getTestsByPatientID);
 router.put('/:id', test.editTest);
+router.delete('/:id', test.removeTest);
 
 module.exports = router;
