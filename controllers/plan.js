@@ -61,7 +61,7 @@ class AbstractPlan {
             let response;
             let defaultPlanVideos = [];
             if (this.planType === 'rehabPlan') {
-                response = await planDao.findOne({ patientID });
+                response = await patientDao.findOne({ id: patientID });
                 if (response) {
                     logger.warn(`Patient ${patientID} already have rehabilitation plan`);
                     return res.status(409).json({
