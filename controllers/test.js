@@ -141,6 +141,8 @@ class Test {
     removeTest = async (req, res) => {
         try {
             const response = await testDao.findOneAndRemove({ id: req.params.id });
+            await modelDao.findOneAndRemove({ testID: req.params.id });
+            redis.del(`gaitModel_${req.params.id}`);
             redis.del(`test_${req.params.id}`);
             redis.del(`all_tests`);
             logger.info(`Test ${req.params.id} was successfully removed`);

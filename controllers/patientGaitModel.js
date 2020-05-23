@@ -46,7 +46,6 @@ class PatientGaitModel {
             }
             const newPatientGatModel = new patientGaitModelDao({ testID });
             const response = await newPatientGatModel.save();
-            redis.setex(`gaitModel_${response.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             logger.info(`Patient gait model ${response.id} created successfully`);
             return res.status(201).json(response);
         }
