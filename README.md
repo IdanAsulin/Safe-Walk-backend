@@ -31,7 +31,7 @@ Create a new file called config.json with the following content
     "CALIBRATION_LENGTH": 150,
     "SAMPLE_TIME": <THE NUMBER OF SECONDS THE SENSOR TAKES SAMPLES>,
     "MIN_GAIT_CYCLES": 7,
-    "STD_DEVIATIONS_FACTOR": 3
+    "STD_DEVIATIONS_FACTOR": 6
 }
 ```
 
