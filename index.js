@@ -5,7 +5,7 @@ const morgan = require('morgan');
 const { validateRequestBody } = require('./middlewares');
 const logger = require('./logger');
 const app = express();
-const port = process.env.PORT || 443;
+const port = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '15mb' }));
 app.use(cors());
