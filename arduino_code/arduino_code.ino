@@ -12,7 +12,7 @@ String toString(const IPAddress& address) {
 
 void updateIpInServer(char* localIP) {
   if (WiFi.status() == WL_CONNECTED) {
-#define serverIP "3.89.190.108"
+#define serverIP "18.212.141.114"
     String sensorName = SENSOR_NAME;
     String kitID = KIT_ID;
     WiFiClient client;
