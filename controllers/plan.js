@@ -109,15 +109,16 @@ class AbstractPlan {
                 for (let index = 0; index < videos.length; index++)
                     videos[index] = { ...videos[index], timesLeft: videos[index].times, done: false };
             }
-            let videoIDs = [];
+            let videoIDs = new Set();
             for (let video of videos)
-                videoIDs.push(video.videoID);
-            if (utils.checkForDuplicates(videos, 'videoID')) {
-                logger.warn(`User sent duplicated videos`);
-                return res.status(403).json({
-                    message: `You've sent duplicated videos`
-                });
-            }
+                videoIDs.add(video.videoID);
+            videoIDs = [...videoIDs];
+            // if (utils.checkForDuplicates(videos, 'videoID')) {
+            //     logger.warn(`User sent duplicated videos`);
+            //     return res.status(403).json({
+            //         message: `You've sent duplicated videos`
+            //     });
+            // }
             response = await videoDao.find({ id: { $in: videoIDs } });
             if (response.length !== videos.length) {
                 logger.warn(`User sent videos which are not exist`);
