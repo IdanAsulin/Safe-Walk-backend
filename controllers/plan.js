@@ -39,8 +39,7 @@ class AbstractPlan {
                     videoID: Joi.string().required(),
                     times: Joi.number().min(1).required()
                 }).required(),
-                defaultPlans: Joi.array().items(Joi.string()),
-                therapistID: Joi.string()
+                defaultPlans: Joi.array().items(Joi.string())
             });
         }
         const { error, value } = schema.validate(req.body);
@@ -51,6 +50,7 @@ class AbstractPlan {
             });
         }
         let { name, instructions, videos, therapistID } = value;
+        therapistID = therapistID || req.user.id;
         let patientID, defaultPlans;
         const type = this.planType;
         if (this.planType === 'rehabPlan') {
