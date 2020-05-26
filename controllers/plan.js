@@ -113,19 +113,7 @@ class AbstractPlan {
             for (let video of videos)
                 videoIDs.add(video.videoID);
             videoIDs = [...videoIDs];
-            // if (utils.checkForDuplicates(videos, 'videoID')) {
-            //     logger.warn(`User sent duplicated videos`);
-            //     return res.status(403).json({
-            //         message: `You've sent duplicated videos`
-            //     });
-            // }
             response = await videoDao.find({ id: { $in: videoIDs } });
-            // if (response.length !== videos.length) {
-            //     logger.warn(`User sent videos which are not exist`);
-            //     return res.status(400).json({
-            //         message: `You've sent videos which are not exist`
-            //     });
-            // }
             let newPlan;
             if (this.planType === 'defaultPlan')
                 newPlan = new planDao({ name, instructions, videos, type });
@@ -180,9 +168,9 @@ class AbstractPlan {
                 });
             }
             if (!name && !instructions && !videos && !therapistID) {
-                logger.warn(`User have to provide at least one parameter to update`);
+                logger.warn(`User have to provide at least one parameter to be updated`);
                 return res.status(400).json({
-                    message: `You have to provide at least one parameter to update`
+                    message: `You have to provide at least one parameter to be updated`
                 });
             }
             if (name)
@@ -212,7 +200,9 @@ class AbstractPlan {
             }
             if (videos && videos.length > 0 && this.planType === 'rehabPlan') {
                 const videoIDs = videos.map(video => video.videoID);
+                logger.info(`videosIDS:    ${videoIDs.length}`)
                 const videosDocs = await videoDao.find({ id: { $in: videoIDs } });
+                logger.info(`videosDocs:    ${videosDocs.length}`)
                 if (videosDocs.length !== videos.length) {
                     logger.warn(`User provided some videos which are not exist`);
                     return res.status(400).json({
