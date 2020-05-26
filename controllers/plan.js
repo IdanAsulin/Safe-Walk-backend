@@ -51,6 +51,7 @@ class AbstractPlan {
         }
         let { name, instructions, videos, therapistID } = value;
         therapistID = therapistID || req.user.id;
+        logger.info(`therapistID:     ${therapistID}`)
         let patientID, defaultPlans;
         const type = this.planType;
         if (this.planType === 'rehabPlan') {
