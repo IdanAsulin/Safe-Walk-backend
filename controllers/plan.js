@@ -190,26 +190,17 @@ class AbstractPlan {
             if (videos && videos.length > 0 && this.planType === 'defaultPlan') {
                 const videoIDs = videos.map(video => video.videoID);
                 const videosDocs = await videoDao.find({ id: { $in: videoIDs } });
-                if (videosDocs.length !== videos.length) {
-                    logger.warn(`User provided some videos which are not exist`);
-                    return res.status(400).json({
-                        message: `You have to provide an exist videos`
-                    });
-                }
-                planDocument.videos = videos;
+                const videosToUpdate = videosDocs.map(video => video.id);
+                planDocument.videos = videosToUpdate;
             }
             if (videos && videos.length > 0 && this.planType === 'rehabPlan') {
                 const videoIDs = videos.map(video => video.videoID);
                 const videosDocs = await videoDao.find({ id: { $in: videoIDs } });
-                // if (videosDocs.length !== videos.length) {
-                //     logger.warn(`User provided some videos which are not exist`);
-                //     return res.status(400).json({
-                //         message: `You have to provide an exist videos`
-                //     });
-                // }
                 const videosToUpdate = [];
-                for (let video of videos)
-                    videosToUpdate.push({ ...video, timesLeft: video.times, done: false });
+                for (let video of videos) {
+                    if (videosDocs.find(item => item.id === video.videoID))
+                        videosToUpdate.push({ ...video, timesLeft: video.times, done: false });
+                }
                 planDocument.videos = videosToUpdate;
             }
             if (defaultPlanIDs && defaultPlanIDs.length > 0 && this.planType === 'rehabPlan') {
