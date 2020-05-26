@@ -44,6 +44,7 @@ class AbstractPlan {
         }
         const { error, value } = schema.validate(req.body);
         if (error) {
+            logger.info(error)
             logger.warn(`Bad schema of body parameter: ${JSON.stringify(req.body)}`);
             return res.status(400).json({
                 message: error.details[0].message
