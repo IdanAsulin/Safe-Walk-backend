@@ -39,12 +39,12 @@ class AbstractPlan {
                     videoID: Joi.string().required(),
                     times: Joi.number().min(1).required()
                 }).required(),
-                defaultPlans: Joi.array().items(Joi.string())
+                defaultPlans: Joi.array().items(Joi.string()),
+                therapistID: Joi.string().optional()
             });
         }
         const { error, value } = schema.validate(req.body);
         if (error) {
-            logger.info(error)
             logger.warn(`Bad schema of body parameter: ${JSON.stringify(req.body)}`);
             return res.status(400).json({
                 message: error.details[0].message
@@ -52,7 +52,6 @@ class AbstractPlan {
         }
         let { name, instructions, videos, therapistID } = value;
         therapistID = therapistID || req.user.id;
-        logger.info(`therapistID:     ${therapistID}`)
         let patientID, defaultPlans;
         const type = this.planType;
         if (this.planType === 'rehabPlan') {
