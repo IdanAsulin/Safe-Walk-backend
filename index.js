@@ -30,13 +30,13 @@ app.use('/api/video', require('./routes/video'));
 app.use('/api/auth', require('./routes/auth'));
 app.all('*', (req, res) => res.status(404).json({ message: `Endpoint not found` }));
 
-if (process.env.NODE_ENVIRONMENT === 'production') {
-    const options = {
-        key: fs.readFileSync(config.SSL_KEY_PATH),
-        cert: fs.readFileSync(config.SSL_CERT_PATH)
-    };
-    const httpsServer = https.createServer(options, app);
-    httpsServer.listen(productionPort, () => console.log(`Listening on port ${productionPort}`))
-}
-else
+// if (process.env.NODE_ENVIRONMENT === 'production') {
+//     const options = {
+//         key: fs.readFileSync(config.SSL_KEY_PATH),
+//         cert: fs.readFileSync(config.SSL_CERT_PATH)
+//     };
+//     const httpsServer = https.createServer(options, app);
+//     httpsServer.listen(productionPort, () => console.log(`Listening on port ${productionPort}`))
+// }
+// else
     app.listen(developmentPort, () => logger.info(`Listening on port: ${developmentPort}`));
