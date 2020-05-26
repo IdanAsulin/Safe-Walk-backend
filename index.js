@@ -10,7 +10,7 @@ const config = require('./config.json');
 const fs = require('fs');
 
 const developmentPort = 3000;
-const productionPort = 443;
+const productionPort = 3000;
 
 const app = express();
 app.use(express.json({ limit: '15mb' }));
