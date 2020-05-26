@@ -3,4 +3,5 @@ config.json
 .idea
 .vscode
 dump.rdb
+
 .env
