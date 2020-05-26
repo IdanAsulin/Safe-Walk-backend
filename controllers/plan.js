@@ -120,12 +120,12 @@ class AbstractPlan {
             //     });
             // }
             response = await videoDao.find({ id: { $in: videoIDs } });
-            if (response.length !== videos.length) {
-                logger.warn(`User sent videos which are not exist`);
-                return res.status(400).json({
-                    message: `You've sent videos which are not exist`
-                });
-            }
+            // if (response.length !== videos.length) {
+            //     logger.warn(`User sent videos which are not exist`);
+            //     return res.status(400).json({
+            //         message: `You've sent videos which are not exist`
+            //     });
+            // }
             let newPlan;
             if (this.planType === 'defaultPlan')
                 newPlan = new planDao({ name, instructions, videos, type });
