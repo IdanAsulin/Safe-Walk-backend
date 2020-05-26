@@ -203,6 +203,7 @@ class AbstractPlan {
                 logger.info(`videosIDS:    ${videoIDs.length}`)
                 const videosDocs = await videoDao.find({ id: { $in: videoIDs } });
                 logger.info(`videosDocs:    ${videosDocs.length}`)
+                logger.info(videos)
                 if (videosDocs.length !== videos.length) {
                     logger.warn(`User provided some videos which are not exist`);
                     return res.status(400).json({
