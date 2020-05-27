@@ -60,7 +60,8 @@ class AbstractPlan {
         if (this.planType === 'rehabPlan') {
             defaultPlans = value.defaultPlans;
             patientID = value.patientID;
-            executionTime = value.executionTime;
+            let executionTime = new Date();
+            executionTime = executionTime.setDate(executionTime.getDate() + value.executionTime);
         }
         try {
             let response;
@@ -164,7 +165,7 @@ class AbstractPlan {
                 message: error.details[0].message
             });
         }
-        const { name, instructions, videos, therapistID, defaultPlanIDs, executionTime } = value;
+        const { name, instructions, videos, therapistID, defaultPlanIDs } = value;
         try {
             const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument) {
@@ -229,8 +230,11 @@ class AbstractPlan {
                         });
                 planDocument.videos = videosToUpdate;
             }
-            if (this.planType === 'rehabPlan' && executionTime)
+            if (this.planType === 'rehabPlan' && executionTime) {
+                let executionTime = new Date();
+                executionTime = executionTime.setDate(executionTime.getDate() + value.executionTime);
                 planDocument.executionTime = executionTime;
+            }
             const response = await planDocument.save();
             redis.setex(`${this.planType}_${planDocument.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             redis.del(`all_${this.planType}`);
