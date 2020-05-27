@@ -46,7 +46,8 @@ class RehabPlan extends AbstractPlan {
                         videoID: video.videoID,
                         times: video.times,
                         timesLeft: video.times,
-                        done: false
+                        done: false,
+                        priority: video.priority
                     });
             if (utils.checkForDuplicates(videosTonsert, 'videoID')) {
                 logger.warn(`The default plans the user tried to add contain some videos which are the same`);

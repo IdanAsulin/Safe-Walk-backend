@@ -18,7 +18,12 @@ const planSchema = new Schema({
             videoID: { type: String, required: true },
             times: { type: Number, default: 1, min: 1 },
             timesLeft: { type: Number, default: 0, min: 0 },
-            done: { type: Boolean }
+            done: { type: Boolean },
+            priority: {
+                type: String,
+                enum: ['High', 'Low', 'Medium'],
+                default: 'Medium'
+            }
         }]
     },
     instructions: {
@@ -30,7 +35,8 @@ const planSchema = new Schema({
         type: String,
         enum: ['defaultPlan', 'rehabPlan'],
         required: true
-    }
+    },
+    executionTime: { type: Number, default: 30 }
 });
 
 module.exports = mongoose.model('plan', planSchema);

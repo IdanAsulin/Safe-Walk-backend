@@ -26,7 +26,8 @@ class AbstractPlan {
                 instructions: Joi.string().required(),
                 videos: Joi.array().items({
                     videoID: Joi.string().required(),
-                    times: Joi.number().min(1).required()
+                    times: Joi.number().min(1).required(),
+                    priority: Joi.string().valid('High', 'Medium', 'Low').default('Medium')
                 }).min(1).required()
             });
         }
@@ -37,10 +38,12 @@ class AbstractPlan {
                 instructions: Joi.string().required(),
                 videos: Joi.array().items({
                     videoID: Joi.string().required(),
-                    times: Joi.number().min(1).required()
+                    times: Joi.number().min(1).required(),
+                    priority: Joi.string().valid('High', 'Medium', 'Low').default('Medium')
                 }).required(),
                 defaultPlans: Joi.array().items(Joi.string()),
-                therapistID: Joi.string().optional()
+                therapistID: Joi.string().optional(),
+                executionTime: Joi.number().default(30)
             });
         }
         const { error, value } = schema.validate(req.body);
@@ -52,11 +55,12 @@ class AbstractPlan {
         }
         let { name, instructions, videos, therapistID } = value;
         therapistID = therapistID || req.user.id;
-        let patientID, defaultPlans;
+        let patientID, defaultPlans, executionTime;
         const type = this.planType;
         if (this.planType === 'rehabPlan') {
             defaultPlans = value.defaultPlans;
             patientID = value.patientID;
+            executionTime = value.executionTime;
         }
         try {
             let response;
@@ -118,7 +122,7 @@ class AbstractPlan {
             if (this.planType === 'defaultPlan')
                 newPlan = new planDao({ name, instructions, videos, type });
             else
-                newPlan = new planDao({ name, instructions, videos, type, therapistID, patientID });
+                newPlan = new planDao({ name, instructions, videos, type, therapistID, patientID, executionTime });
             response = await newPlan.save();
             if (this.planType === 'rehabPlan') {
                 let patientDoc = await patientDao.findOne({ id: patientID });
@@ -146,10 +150,12 @@ class AbstractPlan {
             instructions: Joi.string(),
             videos: Joi.array().items({
                 videoID: Joi.string().required(),
-                times: Joi.number().min(1).required()
+                times: Joi.number().min(1).required(),
+                priority: Joi.string().valid('High', 'Medium', 'Low').default('Medium')
             }).min(1),
             therapistID: Joi.string(),
-            defaultPlanIDs: Joi.array().items(Joi.string())
+            defaultPlanIDs: Joi.array().items(Joi.string()),
+            executionTime: Joi.number().default(30)
         });
         const { error, value } = schema.validate(req.body);
         if (error) {
@@ -158,7 +164,7 @@ class AbstractPlan {
                 message: error.details[0].message
             });
         }
-        const { name, instructions, videos, therapistID, defaultPlanIDs } = value;
+        const { name, instructions, videos, therapistID, defaultPlanIDs, executionTime } = value;
         try {
             const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument) {
@@ -218,10 +224,13 @@ class AbstractPlan {
                             videoID: video.videoID,
                             times: video.times,
                             timesLeft: video.times,
-                            done: false
+                            done: false,
+                            priority: video.priority
                         });
                 planDocument.videos = videosToUpdate;
             }
+            if (this.planType === 'rehabPlan' && executionTime)
+                planDocument.executionTime = executionTime;
             const response = await planDocument.save();
             redis.setex(`${this.planType}_${planDocument.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             redis.del(`all_${this.planType}`);
