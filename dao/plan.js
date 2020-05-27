@@ -36,7 +36,7 @@ const planSchema = new Schema({
         enum: ['defaultPlan', 'rehabPlan'],
         required: true
     },
-    executionTime: { type: Number, default: 30 }
+    executionTime: Number
 });
 
 module.exports = mongoose.model('plan', planSchema);
