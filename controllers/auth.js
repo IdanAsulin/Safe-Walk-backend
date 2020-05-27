@@ -19,8 +19,9 @@ class Auth {
                 message: error.details[0].message
             });
         }
-        const { mail, password } = value;
+        let { mail, password } = value;
         try {
+            mail = mail.toLowerCase();
             let userType;
             let user = await therapistDao.findOne({ mail: mail });
             if (!user) {
