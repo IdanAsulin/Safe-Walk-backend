@@ -22,7 +22,6 @@ Create a new file called config.json with the following content
     "DB_CONNECTION_URL": "mongodb://<user>:<password>@ds215229.mlab.com:15229/<DB name>",
     "JWT_SECRET": "YOUR_SECRET_KEY",
     "TOKEN_EXPIRES_IN": 36000,
-    "HTTPS_ENV": false,
     "CACHE_TTL_FOR_GET_REQUESTS": 5000,
     "AWS_ACC_KEY_ID": "AWS ACCESS KEY ID",
     "AWS_SEC_ACC_KEY": "AWS SECRET ACCESS KEY",
@@ -31,7 +30,9 @@ Create a new file called config.json with the following content
     "CALIBRATION_LENGTH": 150,
     "SAMPLE_TIME": <THE NUMBER OF SECONDS THE SENSOR TAKES SAMPLES>,
     "MIN_GAIT_CYCLES": 7,
-    "STD_DEVIATIONS_FACTOR": 6
+    "STD_DEVIATIONS_FACTOR": 5,
+    "SSL_KEY_PATH": "",
+    "SSL_CERT_PATH": ""
 }
 ```
 
@@ -83,7 +84,7 @@ npm run flush-redis
 ## Deployment
 
 This application deployed on an EC2 instance on AWS platform - 
-[Server URL](http://ec2-3-89-190-108.compute-1.amazonaws.com:3000)
+[Server URL](https://safewalk.company/api)
 
 ## Built With
 

@@ -4,7 +4,6 @@
 #include <avr/dtostrf.h>
 #include "config.h"
 
-
 WiFiServer server(80);
 
 String toString(const IPAddress& address) {
@@ -15,8 +14,8 @@ void updateIpInServer(char* localIP) {
   if (WiFi.status() == WL_CONNECTED) {
     String sensorName = SENSOR_NAME;
     String kitID = KIT_ID;
-    WiFiClient client;
-    if (client.connect(SERVER_IP, 3000)) {
+    WiFiSSLClient client;
+    if (client.connect(SERVER_IP, 443)) {
       String jsonBody = "{\"sensor\":\"" + sensorName + "\",\"ip\":\"" + localIP + "\"}";
       client.println("PUT /api/sensorsKit/" + kitID + "/ips HTTP/1.1");
       client.print(F("Host: "));
