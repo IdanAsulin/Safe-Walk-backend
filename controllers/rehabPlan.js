@@ -154,10 +154,10 @@ class RehabPlan extends AbstractPlan {
                         const finishedExercises = planDocument.videos.filter(video => video.done === true);
                         if (finishedExercises.length === planDocument.videos.length) {
                             const patientDoc = await patientDao.findOne({ id: planDocument.patientID });
-                            redis.del(`all_patients`);
-                            redis.setex(`patient_${planDocument.patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(patientDoc));
                             patientDoc.rehabPlanID = "";
-                            await patientDoc.save();
+                            const updatedPatient = await patientDoc.save();
+                            redis.del(`all_patients`);
+                            redis.setex(`patient_${planDocument.patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(updatedPatient));
                         }
                     }
                     flag = true;
