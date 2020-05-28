@@ -56,7 +56,7 @@ class AbstractPlan {
         let { name, instructions, videos, therapistID } = value;
         therapistID = therapistID || req.user.id;
         let patientID, defaultPlans;
-        executionTime = value.executionTime || 30;
+        let executionTime = value.executionTime || 30;
         const type = this.planType;
         if (this.planType === 'rehabPlan') {
             defaultPlans = value.defaultPlans;
