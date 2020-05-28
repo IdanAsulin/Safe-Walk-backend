@@ -56,13 +56,13 @@ class AbstractPlan {
         let { name, instructions, videos, therapistID } = value;
         therapistID = therapistID || req.user.id;
         let patientID, defaultPlans;
-        let executionTime = value.executionTime || 30;
+        let daysToAdd = value.executionTime || 30;
         const type = this.planType;
         if (this.planType === 'rehabPlan') {
             defaultPlans = value.defaultPlans;
             patientID = value.patientID;
             let executionTime = new Date();
-            executionTime = new Date(executionTime.setDate(executionTime.getDate() + executionTime));
+            executionTime = new Date(executionTime.setDate(executionTime.getDate() + daysToAdd));
         }
         try {
             let response;
