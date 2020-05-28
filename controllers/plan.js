@@ -62,7 +62,7 @@ class AbstractPlan {
             defaultPlans = value.defaultPlans;
             patientID = value.patientID;
             let executionTime = new Date();
-            executionTime = executionTime.setDate(executionTime.getDate() + executionTime);
+            executionTime = new Date(executionTime.setDate(executionTime.getDate() + executionTime));
         }
         try {
             let response;
