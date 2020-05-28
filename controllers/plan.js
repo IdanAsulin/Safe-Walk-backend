@@ -62,6 +62,7 @@ class AbstractPlan {
             patientID = value.patientID;
             let executionTime = new Date();
             executionTime = executionTime.setDate(executionTime.getDate() + value.executionTime);
+            console.log('Execution Time:        ' + executionTime);
         }
         try {
             let response;
