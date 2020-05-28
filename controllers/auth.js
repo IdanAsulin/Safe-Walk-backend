@@ -59,6 +59,7 @@ class Auth {
                 logger.info(`User ${mail} was logged in`);
                 return res.status(200).json({
                     token: token,
+                    tokenExpires: config.TOKEN_EXPIRES_IN,
                     name: user.name,
                     picture: user.picture,
                     id: user.id
