@@ -43,7 +43,7 @@ class AbstractPlan {
                 }).required(),
                 defaultPlans: Joi.array().items(Joi.string()),
                 therapistID: Joi.string().optional(),
-                executionTime: Joi.number().default(30)
+                executionTime: Joi.number().default(30).min(1)
             });
         }
         const { error, value } = schema.validate(req.body);
@@ -55,14 +55,14 @@ class AbstractPlan {
         }
         let { name, instructions, videos, therapistID } = value;
         therapistID = therapistID || req.user.id;
-        let patientID, defaultPlans, executionTime;
+        let patientID, defaultPlans;
+        executionTime = value.executionTime || 30;
         const type = this.planType;
         if (this.planType === 'rehabPlan') {
             defaultPlans = value.defaultPlans;
             patientID = value.patientID;
             let executionTime = new Date();
-            executionTime = executionTime.setDate(executionTime.getDate() + value.executionTime);
-            logger.info('Execution Time:        ' + executionTime);
+            executionTime = executionTime.setDate(executionTime.getDate() + executionTime);
         }
         try {
             let response;
