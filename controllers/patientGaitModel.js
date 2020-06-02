@@ -69,7 +69,7 @@ class PatientGaitModel {
             accelerations: rawDataJoi,
             velocities: rawDataJoi,
             displacements: rawDataJoi,
-            report: Joi.string().required()
+            report: Joi.array().required()
         });
         const { error, value } = schema.validate(req.body);
         if (error) {
