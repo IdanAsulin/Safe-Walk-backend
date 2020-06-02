@@ -11,6 +11,7 @@ class Test {
     createTest = async (req, res) => {
         const patientID = req.user.id;
         const date = new Date();
+        logger.info('Date:' + date)
         const newTest = new testDao({ patientID: patientID, date: date });
         try {
             let patient = await getFromRedis(`patient_${patientID}`);
