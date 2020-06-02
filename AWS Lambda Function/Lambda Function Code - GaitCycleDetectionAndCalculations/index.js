@@ -215,7 +215,7 @@ exports.handler = async (event, context, callback) => {
         const dtw = new DynamicTimeWarping(normalCycle, cycle_accs, distFunc);
         const dist = dtw.getDistance();
         const path = dtw.getPath(); // Returns match between points in the normal cycle and the sampled one
-        let report = '';
+        let report = [];
 
         /* Detecting failures in the patient's gait cycle */
         const gaitExceptions = [];
@@ -231,27 +231,27 @@ exports.handler = async (event, context, callback) => {
                 gaitExceptions.push(sample_index);
                 const exception = Number((difference / stdDeviation).toFixed(2));
                 if (normal_cycle_index >= start_hill_strike && normal_cycle_index <= end_hill_strike) {
-                    report += `An exception of ${exception} standard deviations was detected in the Hill Strike stage (sample #${sample_index})\n`;
+                    report.push(`An exception of ${exception} standard deviations was detected in the Hill Strike stage (sample #${sample_index})`);
                     continue;
                 }
                 if (normal_cycle_index >= start_mid_stance && normal_cycle_index <= end_mid_stance) {
-                    report += `An exception of ${exception} standard deviations was detected in the Mid Stance stage (sample #${sample_index})\n`;
+                    report.push(`An exception of ${exception} standard deviations was detected in the Mid Stance stage (sample #${sample_index})`);
                     continue;
                 }
                 if (normal_cycle_index >= start_toe_off && normal_cycle_index <= end_toe_off) {
-                    report += `An exception of ${exception} standard deviations was detected in the Toe Off stage (sample #${sample_index})\n`;
+                    report.push(`An exception of ${exception} standard deviations was detected in the Toe Off stage (sample #${sample_index})`);
                     continue;
                 }
-                report += `An exception of ${exception} standard deviations was detected (sample #${sample_index})\n`;
+                report.push(`An exception of ${exception} standard deviations was detected (sample #${sample_index})`);
             }
         }
         let failureObserved = false;
         if (gaitExceptions.length > 0) {
             failureObserved = true;
-            report = `The following ${gaitExceptions.length} deviations have been detected:\n${report.trim()}`;
+            const newReport = [`The following ${gaitExceptions.length} deviations have been detected`].concat(report);
         }
         else
-            report = `No gait pattern failures have been detected`;
+            report.push(`No gait pattern failures have been detected`);
 
         /* Storing the graphs data into DB */
         let options = {
