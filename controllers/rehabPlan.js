@@ -156,7 +156,10 @@ class RehabPlan extends AbstractPlan {
                             const patientDoc = await patientDao.findOne({ id: planDocument.patientID });
                             patientDoc.rehabPlanID = "";
                             const updatedPatient = await patientDoc.save();
+                            await planDao.findOneAndRemove({ id: req.params.id });
                             redis.del(`all_patients`);
+                            redis.del(`all_rehabPlan`);
+                            redis.del(`rehabPlan_${req.params.id}`);
                             redis.setex(`patient_${planDocument.patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(updatedPatient));
                         }
                     }
