@@ -8,10 +8,7 @@ const testSchema = new Schema({
         type: String,
         default: uuidv4
     },
-    date: {
-        type: Date,
-        default: new Date()
-    },
+    date: Date,
     patientID: { type: String, required: true },
     abnormality: {
         type: Boolean,

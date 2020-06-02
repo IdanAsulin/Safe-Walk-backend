@@ -10,7 +10,8 @@ const { getFromRedis } = require('../utils');
 class Test {
     createTest = async (req, res) => {
         const patientID = req.user.id;
-        const newTest = new testDao({ patientID: patientID });
+        const date = new Date();
+        const newTest = new testDao({ patientID: patientID, date: date });
         try {
             let patient = await getFromRedis(`patient_${patientID}`);
             if (!patient.found) {
