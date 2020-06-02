@@ -161,6 +161,8 @@ class RehabPlan extends AbstractPlan {
                             redis.del(`all_rehabPlan`);
                             redis.del(`rehabPlan_${req.params.id}`);
                             redis.setex(`patient_${planDocument.patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(updatedPatient));
+                            logger.info(`Video ${videoID} mark as executed on rehab plan ${req.params.id}`);
+                            return res.status(200).json({});
                         }
                     }
                     flag = true;
@@ -176,7 +178,7 @@ class RehabPlan extends AbstractPlan {
             const response = await planDocument.save();
             redis.setex(`${this.planType}_${planDocument.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             redis.del(`all_${this.planType}`);
-            logger.warn(`Video ${videoID} mark as executed on rehab plan ${req.params.id}`);
+            logger.info(`Video ${videoID} mark as executed on rehab plan ${req.params.id}`);
             return res.status(200).json(response);
         } catch (ex) {
             logger.error(`Error while trying to mark video ${videoID} on rehab plan ${req.params.id} as executed: ${ex.message}`);
