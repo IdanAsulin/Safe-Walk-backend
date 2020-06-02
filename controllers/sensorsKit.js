@@ -127,9 +127,9 @@ class SensorsKit {
             const { Payload } = await lambda.invoke(params).promise();
             const response = JSON.parse(Payload);
             if (response.statusCode === 400) {
-                logger.warn(`The raw data contains less than ${config.MIN_GAIT_CYCLES} gait cycles`);
+                logger.warn(response.message);
                 return res.status(400).json({
-                    message: `You have to sample at least ${config.MIN_GAIT_CYCLES} gait cycles`
+                    message: response.message
                 });
             }
             if (response.statusCode !== 200) {

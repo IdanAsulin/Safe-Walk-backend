@@ -216,7 +216,7 @@ exports.handler = async (event, context, callback) => {
         const dist = dtw.getDistance();
         if(dist > event.GRAPHS_SIMILARITY_TRESHOLD) { // Returns error in case of 2 completely different graphs
             const error = {
-                statusCode: 500,
+                statusCode: 400,
                 message: `We can't identify any gait cycle, please note that you're acting as it appears inside the instructions video`
             };
             return callback(null, error);
