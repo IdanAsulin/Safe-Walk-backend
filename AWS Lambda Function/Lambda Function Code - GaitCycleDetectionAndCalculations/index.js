@@ -128,7 +128,7 @@ exports.handler = async (event, context, callback) => {
     try {
         /* Extracting the gait cycle by finding acceleration measurements peaks on the x axis */
         const slayerOptions = {
-            minPeakHeight: 4.5, // filter all peaks less than 4.5 m/s^2 (treshold to identify start of a new gait cycle)
+            minPeakHeight: event.PEAKS_FILTER_TRESHOLD, // filter all peaks less than N m/s^2 (treshold to identify start of a new gait cycle)
             minPeakDistance: 100 // at least with 100 samples between peaks (treshold of the interval between cycles - helps us to ignore peaks in between cycles)
         };
         let spikes = await slayer(slayerOptions).fromArray(accelerations_x);
@@ -214,6 +214,13 @@ exports.handler = async (event, context, callback) => {
 
         const dtw = new DynamicTimeWarping(normalCycle, cycle_accs, distFunc);
         const dist = dtw.getDistance();
+        if(dist > event.GRAPHS_SIMILARITY_TRESHOLD) { // Returns error in case of 2 completely different graphs
+            const error = {
+                statusCode: 500,
+                message: `We can't identify any gait cycle, please note that you're acting as it appears inside the instructions video`
+            };
+            return callback(null, error);
+        }
         const path = dtw.getPath(); // Returns match between points in the normal cycle and the sampled one
         let report = [];
 
@@ -248,7 +255,7 @@ exports.handler = async (event, context, callback) => {
         let failureObserved = false;
         if (gaitExceptions.length > 0) {
             failureObserved = true;
-            const newReport = [`The following ${gaitExceptions.length} deviations have been detected`].concat(report);
+            report = [`The following ${gaitExceptions.length} deviations have been detected`].concat(report);
         }
         else
             report.push(`No gait pattern failures have been detected`);

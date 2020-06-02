@@ -32,7 +32,9 @@ Create a new file called config.json with the following content
     "MIN_GAIT_CYCLES": 7,
     "STD_DEVIATIONS_FACTOR": 5,
     "SSL_KEY_PATH": "",
-    "SSL_CERT_PATH": ""
+    "SSL_CERT_PATH": "",
+    "GRAPHS_SIMILARITY_TRESHOLD": 350,
+    "PEAKS_FILTER_TRESHOLD": 4.5
 }
 ```
 
