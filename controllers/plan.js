@@ -167,6 +167,7 @@ class AbstractPlan {
             });
         }
         const { name, instructions, videos, therapistID, defaultPlanIDs } = value;
+        let executionTime;
         try {
             const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
             if (!planDocument) {
@@ -212,6 +213,7 @@ class AbstractPlan {
                 planDocument.videos = videosToUpdate;
             }
             if (defaultPlanIDs && defaultPlanIDs.length > 0 && this.planType === 'rehabPlan') {
+                executionTime = value.executionTime;
                 const defaultPlans = await planDao.find({ id: { $in: defaultPlanIDs }, type: 'defaultPlan' });
                 if (defaultPlans.length !== defaultPlanIDs.length) {
                     logger.warn(`User provided some default plans which are not exist`);
