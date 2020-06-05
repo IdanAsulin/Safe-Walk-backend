@@ -238,24 +238,24 @@ exports.handler = async (event, context, callback) => {
                 gaitExceptions.push(sample_index);
                 const exception = Number((difference / stdDeviation).toFixed(2));
                 if (normal_cycle_index >= start_hill_strike && normal_cycle_index <= end_hill_strike) {
-                    report.push(`An exception of ${exception} standard deviations was detected in the Hill Strike stage (sample #${sample_index})`);
+                    report.push(`${exception} standard deviations at sample #${sample_index}`);
                     continue;
                 }
                 if (normal_cycle_index >= start_mid_stance && normal_cycle_index <= end_mid_stance) {
-                    report.push(`An exception of ${exception} standard deviations was detected in the Mid Stance stage (sample #${sample_index})`);
+                    report.push(`${exception} standard deviations was detected in the Mid Stance stage st sample #${sample_index}`);
                     continue;
                 }
                 if (normal_cycle_index >= start_toe_off && normal_cycle_index <= end_toe_off) {
-                    report.push(`An exception of ${exception} standard deviations was detected in the Toe Off stage (sample #${sample_index})`);
+                    report.push(`${exception} standard deviations was detected in the Toe Off stage at sample #${sample_index}`);
                     continue;
                 }
-                report.push(`An exception of ${exception} standard deviations was detected (sample #${sample_index})`);
+                report.push(`${exception} standard deviations at sample #${sample_index}`);
             }
         }
         let failureObserved = false;
         if (gaitExceptions.length > 0) {
             failureObserved = true;
-            report = [`The following ${gaitExceptions.length} deviations have been detected`].concat(report);
+            report = [`The following ${report.length} deviations have been detected`].concat(report);
         }
         else
             report.push(`No gait pattern failures have been detected`);
