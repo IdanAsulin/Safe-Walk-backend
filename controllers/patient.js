@@ -29,6 +29,7 @@ class Patient {
         let { name, mail, password, picture, phoneNumber, age, gender } = value;
         try {
             const salt = await bcrypt.genSalt(10);
+            mail = mail.toLowerCase();
             password = await bcrypt.hash(password, salt);
             const newSensorsKit = new sensorsKitDao();
             const sensorKit = await newSensorsKit.save();
