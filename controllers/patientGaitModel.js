@@ -107,7 +107,7 @@ class PatientGaitModel {
             model[sensorName].displacements = displacements;
             model[sensorName].report = report;
 
-            const response = await model.save();
+            const response = await model.update();
             redis.setex(`gaitModel_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             logger.info(`Patient gait model for test ${testID} updated successfully`);
             return res.status(200).json(response);
