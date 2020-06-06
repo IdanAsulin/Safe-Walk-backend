@@ -101,12 +101,11 @@ class PatientGaitModel {
                     message: "The test you are trying to update was not found"
                 });
             }
-            
             model[sensorName].accelerations = accelerations;
             model[sensorName].velocities = velocities;
             model[sensorName].displacements = displacements;
             model[sensorName].report = report;
-
+            delete model.__v;
             const response = await model.save();
             redis.setex(`gaitModel_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(response));
             logger.info(`Patient gait model for test ${testID} updated successfully`);
