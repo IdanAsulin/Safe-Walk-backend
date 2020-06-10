@@ -13,7 +13,8 @@ const testSchema = new Schema({
     abnormality: {
         type: Boolean,
         default: false
-    }
+    },
+    overview: { type: String, default: '' }
 });
 
 module.exports = mongoose.model('test', testSchema);

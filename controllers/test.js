@@ -101,7 +101,8 @@ class Test {
 
     editTest = async (req, res) => {
         const schema = Joi.object({
-            abnormality: Joi.bool().required()
+            abnormality: Joi.bool().required(),
+            overview: Joi.string().required()
         });
         const { error, value } = schema.validate(req.body);
         if (error) {
@@ -110,7 +111,7 @@ class Test {
                 message: error.details[0].message
             });
         }
-        const { abnormality } = value;
+        const { abnormality, overview } = value;
         try {
             let testDocument = await testDao.findOne({ id: req.params.id });
             if (!testDocument) {
@@ -126,6 +127,7 @@ class Test {
                 await patient.save();
                 redis.setex(`patient_${testDocument.patientID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(patient));
             }
+            testDocument.overview = overview;
             const response = await testDocument.save();
             redis.setex(`test_${req.params.id}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(testDocument));
             redis.del(`all_tests`);
