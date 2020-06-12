@@ -82,7 +82,6 @@ class PatientGaitModel {
             const testID = req.params.testID;
             const { sensorName, accelerations, velocities, displacements, report } = value;
             let model = await patientGaitModelDao.findOne({ testID }).select('-__v');
-            redis.setex(`gaitModel_${testID}`, config.CACHE_TTL_FOR_GET_REQUESTS, JSON.stringify(model));
             if (!model) {
                 logger.warn(`Model with testID ${testID} was not found`);
                 return res.status(404).json({
