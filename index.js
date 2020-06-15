@@ -39,23 +39,12 @@ if (process.env.NODE_ENVIRONMENT === 'production') {
     };
     const httpsServer = https.createServer(options, app);
     const socketIO = io(httpsServer);
-    logger.info('with sockets');
-    socketIO.on('connection', client => {
-        logger.info('socket' + client);
-
-
-
-    });
+    app.locals.socketIO = socketIO;
     httpsServer.listen(productionPort, () => logger.info(`Listening on port ${productionPort}`));
 }
 else {
     const httpServer = http.createServer(app);
     const socketIO = io(httpServer);
-    socketIO.on('connection', client => {
-        logger.info('socket' + client);
-
-
-
-    });
+    app.locals.socketIO = socketIO;
     httpServer.listen(developmentPort, () => logger.info(`Listening on port: ${developmentPort}`));
 }
