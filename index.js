@@ -3,11 +3,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const https = require('https');
+const http = require('http');
 const morgan = require('morgan');
 const { validateRequestBody } = require('./middlewares');
 const logger = require('./logger');
 const config = require('./config.json');
 const fs = require('fs');
+const io = require('socket.io');
 
 const developmentPort = 3000;
 const productionPort = 443;
@@ -36,7 +38,23 @@ if (process.env.NODE_ENVIRONMENT === 'production') {
         cert: fs.readFileSync(config.SSL_CERT_PATH)
     };
     const httpsServer = https.createServer(options, app);
-    httpsServer.listen(productionPort, () => console.log(`Listening on port ${productionPort}`))
+    const socketIO = io(httpsServer);
+    socketIO.on('connection', client => {
+        logger.info('socket' + client);
+
+
+
+    });
+    httpsServer.listen(productionPort, () => logger.info(`Listening on port ${productionPort}`));
 }
-else
-    app.listen(developmentPort, () => logger.info(`Listening on port: ${developmentPort}`));
+else {
+    const httpServer = http.createServer(app);
+    const socketIO = io(httpServer);
+    socketIO.on('connection', client => {
+        logger.info('socket' + client);
+
+
+
+    });
+    httpServer.listen(developmentPort, () => logger.info(`Listening on port: ${developmentPort}`));
+}
