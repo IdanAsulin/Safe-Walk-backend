@@ -39,6 +39,7 @@ if (process.env.NODE_ENVIRONMENT === 'production') {
     };
     const httpsServer = https.createServer(options, app);
     const socketIO = io(httpsServer);
+    logger.info('with sockets');
     socketIO.on('connection', client => {
         logger.info('socket' + client);
 
