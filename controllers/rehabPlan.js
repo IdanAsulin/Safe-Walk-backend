@@ -171,7 +171,7 @@ class RehabPlan extends AbstractPlan {
                                 timeStamp,
                                 patientPicture: patientDoc.picture
                             });
-                            await newNotification.save();
+                            newNotification.save(); // not waiting because it is not critical for the user
                             redis.del(`all_patients`);
                             redis.del(`all_rehabPlan`);
                             redis.del(`rehabPlan_${req.params.id}`);
