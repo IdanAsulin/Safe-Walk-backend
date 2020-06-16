@@ -29,6 +29,7 @@ app.use('/api/sensorsKit', require('./routes/sensorKit'));
 app.use('/api/test', require('./routes/test'));
 app.use('/api/therapist', require('./routes/therapist'));
 app.use('/api/video', require('./routes/video'));
+app.use('/api/notification', require('./routes/notification'));
 app.use('/api/auth', require('./routes/auth'));
 app.all('*', (req, res) => res.status(404).json({ message: `Endpoint not found` }));
 
