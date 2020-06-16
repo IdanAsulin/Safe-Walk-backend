@@ -157,11 +157,13 @@ class RehabPlan extends AbstractPlan {
                             patientDoc.rehabPlanID = "";
                             const updatedPatient = await patientDoc.save();
                             await planDao.findOneAndRemove({ id: req.params.id });
-                            req.app.locals.socketIO.emit('DONE_REHAB_PLAN',{
+                            logger.info('BEFORE SOCKET START')
+                            req.app.locals.socketIO.emit('NEW_NOTIFICATION',{
                                 patientID: patientDoc.id,
                                 patientName: patientDoc.name,
                                 patientPicture: patientDoc.picture
                             });
+                            logger.info('AFTER SOCKET START')
                             redis.del(`all_patients`);
                             redis.del(`all_rehabPlan`);
                             redis.del(`rehabPlan_${req.params.id}`);
