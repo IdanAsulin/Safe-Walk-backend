@@ -3,11 +3,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const https = require('https');
+const http = require('http');
 const morgan = require('morgan');
 const { validateRequestBody } = require('./middlewares');
 const logger = require('./logger');
 const config = require('./config.json');
 const fs = require('fs');
+const io = require('socket.io');
 
 const developmentPort = 3000;
 const productionPort = 443;
@@ -27,6 +29,7 @@ app.use('/api/sensorsKit', require('./routes/sensorKit'));
 app.use('/api/test', require('./routes/test'));
 app.use('/api/therapist', require('./routes/therapist'));
 app.use('/api/video', require('./routes/video'));
+app.use('/api/notification', require('./routes/notification'));
 app.use('/api/auth', require('./routes/auth'));
 app.all('*', (req, res) => res.status(404).json({ message: `Endpoint not found` }));
 
@@ -36,7 +39,13 @@ if (process.env.NODE_ENVIRONMENT === 'production') {
         cert: fs.readFileSync(config.SSL_CERT_PATH)
     };
     const httpsServer = https.createServer(options, app);
-    httpsServer.listen(productionPort, () => console.log(`Listening on port ${productionPort}`))
+    const socketIO = io(httpsServer);
+    app.locals.socketIO = socketIO;
+    httpsServer.listen(productionPort, () => logger.info(`Listening on port ${productionPort}`));
 }
-else
-    app.listen(developmentPort, () => logger.info(`Listening on port: ${developmentPort}`));
+else {
+    const httpServer = http.createServer(app);
+    const socketIO = io(httpServer);
+    app.locals.socketIO = socketIO;
+    httpServer.listen(developmentPort, () => logger.info(`Listening on port: ${developmentPort}`));
+}

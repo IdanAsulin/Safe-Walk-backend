@@ -2,6 +2,7 @@ const Joi = require('joi');
 const redis = require('../redisConnection');
 const AbstractPlan = require('./plan');
 const planDao = require('../dao/plan');
+const notificationDao = require('../dao/notification');
 const patientDao = require('../dao/patient');
 const utils = require('../utils');
 const logger = require('../logger');
@@ -157,6 +158,20 @@ class RehabPlan extends AbstractPlan {
                             patientDoc.rehabPlanID = "";
                             const updatedPatient = await patientDoc.save();
                             await planDao.findOneAndRemove({ id: req.params.id });
+                            const timeStamp = new Date();
+                            const description = `${patientDoc.name} has completed ${patientDoc.gender === 'female'? 'her' : 'his'} rehabilitation program`;
+                            /* sending notification to the therapist application */
+                            req.app.locals.socketIO.emit('NEW_THERAPIST_NOTIFICATION',{
+                                description,
+                                timeStamp,
+                                patientPicture: patientDoc.picture
+                            });
+                            const newNotification = new notificationDao({
+                                description,
+                                timeStamp,
+                                patientPicture: patientDoc.picture
+                            });
+                            newNotification.save(); // not waiting because it is not critical for the user
                             redis.del(`all_patients`);
                             redis.del(`all_rehabPlan`);
                             redis.del(`rehabPlan_${req.params.id}`);

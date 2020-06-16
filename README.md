@@ -21,7 +21,7 @@ Create a new file called config.json with the following content
 {
     "DB_CONNECTION_URL": "mongodb://<user>:<password>@ds215229.mlab.com:15229/<DB name>",
     "JWT_SECRET": "YOUR_SECRET_KEY",
-    "TOKEN_EXPIRES_IN": 36000,
+    "TOKEN_EXPIRES_IN": "2 hours",
     "CACHE_TTL_FOR_GET_REQUESTS": 60,
     "AWS_ACC_KEY_ID": "AWS ACCESS KEY ID",
     "AWS_SEC_ACC_KEY": "AWS SECRET ACCESS KEY",

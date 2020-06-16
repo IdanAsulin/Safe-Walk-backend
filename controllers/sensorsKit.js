@@ -4,6 +4,7 @@ const redis = require('../redisConnection');
 const sensorsKitDao = require('../dao/sensorsKit');
 const patientDao = require('../dao/patient');
 const testDao = require('../dao/test');
+const notificationDao = require('../dao/notification');
 const logger = require('../logger');
 const config = require('../config.json');
 
@@ -138,6 +139,26 @@ class SensorsKit {
                     message: `Internal server error`
                 });
             }
+            const test = await testDao.findOne({ id: testID });
+            const patient = await patientDao.findOne({ id: test.patientID });
+            const timeStamp = new Date();
+            let description;
+            /* sending notification to the therapist application */
+            if (response.failureObserved)
+                description = `${patient.name} performed a new test and currently waiting for a rehabilitation program`;
+            else
+                description = `${patient.name} performed a new test which found to be ok`;
+            req.app.locals.socketIO.emit('NEW_THERAPIST_NOTIFICATION', {
+                description,
+                timeStamp,
+                patientPicture: patient.picture
+            });
+            const newNotification = new notificationDao({
+                description,
+                timeStamp,
+                patientPicture: patient.picture
+            });
+            newNotification.save(); // not waiting because it is not critical for the user
             return res.status(200).json({ failureObserved: response.failureObserved });
         } catch (ex) {
             logger.error(`Error while trying to analyze raw data: ${ex.message}`);
