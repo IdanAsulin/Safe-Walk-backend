@@ -1,13 +1,25 @@
+const Joi = require('joi');
 const notificationDao = require('../dao/notification');
 const logger = require('../logger');
 const config = require('../config.json');
 
 class Notification {
-    getLastDay = async (req, res) => {
+    getLastTwoWeeks = async (req, res) => {
         try {
+            const schema = Joi.object({
+                since: Joi.number().min(1).required()
+            });
+            const { error, value } = schema.validate(req.query);
+            if (error) {
+                logger.warn(`Bad schema of body parameter: ${JSON.stringify(req.body)}`);
+                return res.status(400).json({
+                    message: error.details[0].message
+                });
+            }
+            const { since } = value;
             const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const response = await notificationDao.find({ timeStamp: { $gte: today } }).select('-_id').select('-__v');
+            const sinceDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - since);
+            const response = await notificationDao.find({ timeStamp: { $gte: sinceDate } }).select('-_id').select('-__v');
             logger.info(`Returns notification of the last day`);
             return res.status(200).json(response);
         } catch (ex) {

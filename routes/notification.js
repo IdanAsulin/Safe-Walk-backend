@@ -7,6 +7,6 @@ router.use(authenticate);
 router.use(blockNotTherapists);
 const notification = new Notification();
 
-router.get('/lastDay', notification.getLastDay);
+router.get('/', notification.getLastTwoWeeks);
 
 module.exports = router;
