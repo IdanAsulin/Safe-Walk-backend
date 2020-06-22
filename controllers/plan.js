@@ -53,8 +53,8 @@ class AbstractPlan {
                 message: error.details[0].message
             });
         }
-        let { name, instructions, videos, therapistID } = value;
-        therapistID = therapistID || req.user.id;
+        let { name, instructions, videos } = value;
+        const therapistID = req.user.id;
         let patientID, defaultPlans, executionTime;
         let daysToAdd = value.executionTime || 30;
         const type = this.planType;
@@ -155,7 +155,7 @@ class AbstractPlan {
                 times: Joi.number().min(1).required(),
                 priority: Joi.string().valid('High', 'Medium', 'Low').default('Medium')
             }).min(1),
-            therapistID: Joi.string(),
+            therapistID: Joi.string().optional(),
             defaultPlanIDs: Joi.array().items(Joi.string()),
             executionTime: Joi.number().default(30)
         });
@@ -166,7 +166,8 @@ class AbstractPlan {
                 message: error.details[0].message
             });
         }
-        const { name, instructions, videos, therapistID, defaultPlanIDs } = value;
+        const { name, instructions, videos, defaultPlanIDs } = value;
+        const therapistID = req.user.id;
         let executionTime = value.executionTime;
         try {
             const planDocument = await planDao.findOne({ id: req.params.id, type: this.planType });
