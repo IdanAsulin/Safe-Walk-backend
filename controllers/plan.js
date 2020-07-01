@@ -108,18 +108,16 @@ class AbstractPlan {
                         });
                     }
                     for (let defaultPlan of response)
-                        for (let video of defaultPlan.videos)
-                            defaultPlanVideos.push(video._doc);
+                        for (let video of defaultPlan.videos) {
+                            if (videos.findIndex(item => item.videoID) === -1) // if video not already exist
+                                defaultPlanVideos.push(video._doc);
+                        }
                     videos = videos.concat(defaultPlanVideos);
                 }
+
                 for (let index = 0; index < videos.length; index++)
                     videos[index] = { ...videos[index], timesLeft: videos[index].times, done: false };
             }
-            let videoIDs = new Set();
-            for (let video of videos)
-                videoIDs.add(video.videoID);
-            videoIDs = [...videoIDs];
-            response = await videoDao.find({ id: { $in: videoIDs } });
             let newPlan;
             if (this.planType === 'defaultPlan')
                 newPlan = new planDao({ name, instructions, videos, type });
