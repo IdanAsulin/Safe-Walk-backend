@@ -96,6 +96,7 @@ This application deployed on an EC2 instance on AWS platform -
 * [AWS EC2](https://aws.amazon.com/ec2/) - Application server
 * [Redis](https://redis.io) - Cache mechanism
 * [Express](https://expressjs.com/) - Web framework
+* [Socket.IO](https://socket.io/) - Server notifications
 * [PM2](https://pm2.keymetrics.io/) - Process manager
 * [Dynamic time warping](https://www.npmjs.com/package/dynamic-time-warping) - Algorithm used for detection of differences between time sequences
 * [Mongo DB](https://www.mongodb.com/) - Application database
